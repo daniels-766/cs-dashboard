@@ -1,0 +1,29 @@
+#status_ticket
+1 = aktif
+2 = perpanjangan
+3 = keberatan
+4 = tutup
+5 = reopen
+
+#kategori_pengaduan
+1 = Rendah
+2 = Sedang
+3 = Tinggi
+
+#jenis_pengaduan
+1 = Informasi Pengajuan 
+2 = Permintaan Kode OTP
+3 = Informasi Tenor
+4 = Informasi Tagihan
+5 = Informasi Denda
+6 = Pembatalan Pinjaman
+7 = Informasi Pencairan Dana
+8 = Perilaku Petugas Penagihan
+9 = Informasi Pembayaran
+10 = Discount / Pemutihan
+
+#tahapan
+Penanganan CS
+Eskalasi ke QC
+Eskalasi ke OPS
+Menunggu dokumen tambahan

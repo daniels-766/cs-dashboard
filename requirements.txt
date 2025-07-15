@@ -1,0 +1,4 @@
+#flask db init
+#flask db migrate -m "create user model"
+#flask db upgrade
+
