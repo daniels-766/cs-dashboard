@@ -46,6 +46,8 @@ class Ticket(db.Model):
     tahapan_2 = db.Column(db.String(100), nullable=True)
     created_time = db.Column(db.DateTime, default=datetime.utcnow)
     kronologis = db.Column(db.Text, nullable=True)
+    status_case = db.Column(db.String(50), nullable=True)
+    document = db.Column(db.Text, nullable=True)
 
     nomor_ticket_id = db.Column(db.Integer, db.ForeignKey('nomor_ticket.id'), nullable=True)
     nomor_ticket = db.relationship('NomorTicket', back_populates='tickets')

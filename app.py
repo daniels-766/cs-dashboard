@@ -1,15 +1,16 @@
-from flask import Flask, render_template, redirect, url_for, request, flash, send_file
+from flask import Flask, render_template, redirect, url_for, request, flash, send_file, send_from_directory
 from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 from extensions import db, migrate, login_manager
 from datetime import datetime
-from models import Ticket, NomorTicket, User, Kontak, History
-from sqlalchemy.orm import joinedload
-from sqlalchemy import func, or_, and_
+from models import Ticket, NomorTicket, User, Kontak, History, db
+from sqlalchemy.orm import joinedload, aliased
+from sqlalchemy import func, or_, and_, asc, func
 from werkzeug.utils import secure_filename
 import pandas as pd
 from io import BytesIO
+from flask_apscheduler import APScheduler
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/dashboard-cs2'
@@ -18,10 +19,62 @@ app.config['SECRET_KEY'] = 'b35dfe6ce150230940bd145823034486'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 150 * 1024 * 1024 
 
+ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'xls', 'xlsx'}
+UPLOAD_FOLDER = os.path.join('static', 'uploads')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 db.init_app(app)
 migrate.init_app(app, db)
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+@app.context_processor
+def inject_sla_warning_tickets():
+    subquery = (
+        db.session.query(
+            Ticket.nomor_ticket_id,
+            func.min(Ticket.sla).label("min_sla")
+        )
+        .filter(Ticket.sla.between(1, 3))
+        .group_by(Ticket.nomor_ticket_id)
+    ).subquery()
+
+    TicketAlias = aliased(Ticket)
+
+    sla_warning_tickets = (
+        db.session.query(TicketAlias)
+        .join(subquery, and_(
+            TicketAlias.nomor_ticket_id == subquery.c.nomor_ticket_id,
+            TicketAlias.sla == subquery.c.min_sla
+        ))
+        .join(NomorTicket, NomorTicket.id == TicketAlias.nomor_ticket_id)
+        .filter(NomorTicket.status.in_(['aktif', 'Reopen']))
+        .order_by(TicketAlias.sla.asc())
+        .all()
+    )
+
+    return {'sla_warning_tickets': sla_warning_tickets}
+
+class Config:
+    SCHEDULER_API_ENABLED = True
+
+app.config.from_object(Config())
+
+scheduler = APScheduler()
+scheduler.init_app(app)
+scheduler.start()
+
+@scheduler.task('cron', id='decrease_sla_daily', hour=0, minute=0)
+def decrease_sla():
+    with app.app_context():
+        tickets = Ticket.query.filter(Ticket.sla > 0).all()
+        for ticket in tickets:
+            ticket.sla -= 1
+        db.session.commit()
+        print(f"SLA updated at {datetime.utcnow()} — {len(tickets)} ticket(s) updated.")
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -211,7 +264,7 @@ def filtering():
         for os, bucket, count in data_grouped:
             if os:
                 os_totals[os] = os_totals.get(os, 0) + count
-                if bucket:  # ✅ Hanya masukkan jika bucket TIDAK kosong/NULL
+                if bucket: 
                     if os not in os_buckets:
                         os_buckets[os] = []
                     os_buckets[os].append(f"{bucket}: {count}")
@@ -980,6 +1033,15 @@ def update_tahapan(nomor_ticket_id, ticket_id):
     flash('Data berhasil diperbarui.', 'success')
     return redirect(url_for('list_ticket_by_nomor', nomor_ticket_id=nomor_ticket_id))
 
+@app.route('/mark-case-valid/<int:ticket_id>', methods=['POST'])
+@login_required
+def mark_case_valid(ticket_id):
+    tiket = Ticket.query.get_or_404(ticket_id)
+    tiket.status_case = 'valid'
+    db.session.commit()
+    flash('Status case diubah menjadi VALID', 'success')
+    return redirect(request.referrer or url_for('dashboard'))
+
 @app.route('/update-tahapan-reopen/<int:nomor_ticket_id>/<int:ticket_id>', methods=['POST'])
 @login_required
 def update_tahapan_reopen(nomor_ticket_id, ticket_id):
@@ -1369,6 +1431,173 @@ def reopen_ticket():
         tickets=pagination,
         count_by_nomor_ticket=count_by_nomor_ticket
     )
+
+@app.route('/download-template')
+def download_template():
+    return send_from_directory(directory='static/files', path='template_cs.xlsx', as_attachment=True)
+
+@app.route('/upload', methods=['POST'])
+@login_required
+def upload_excel():
+    try:
+        file = request.files.get('avatar')  
+        if not file:
+            flash("Tidak ada file yang diupload", 'danger')
+            return redirect(request.referrer)
+
+        df = pd.read_excel(file)
+
+        expected_cols = ['nomor_ticket', 'tanggal', 'nama_nasabah', 'tipe_pengaduan',
+                         'detail_pengaduan', 'order_no', 'os', 'dc', 'bucket']
+        if not all(col in df.columns for col in expected_cols):
+            flash("Kolom Excel tidak sesuai template.", 'danger')
+            return redirect(request.referrer)
+
+        jenis_pengaduan_map = {
+            "Informasi Pengajuan": 1,
+            "Permintaan Kode OTP": 2,
+            "Informasi Tenor": 3,
+            "Informasi Tagihan": 4,
+            "Informasi Denda": 5,
+            "Pembatalan Pinjaman": 6,
+            "Informasi Pencairan Dana": 7,
+            "Perilaku Petugas Penagihan": 8,
+            "Informasi Pembayaran": 9,
+            "Discount / Pemutihan": 10
+        }
+
+        for index, row in df.iterrows():
+            nomor_ticket_str = str(row['nomor_ticket']).strip()
+            nomor_ticket = NomorTicket.query.filter_by(nomor_ticket=nomor_ticket_str).first()
+            if not nomor_ticket:
+                nomor_ticket = NomorTicket(nomor_ticket=nomor_ticket_str)
+                db.session.add(nomor_ticket)
+                db.session.flush()
+
+            tanggal_value = row['tanggal']
+            if isinstance(tanggal_value, str):
+                tanggal_value = datetime.strptime(tanggal_value, '%Y-%m-%d')
+            elif pd.isna(tanggal_value):
+                tanggal_value = datetime.utcnow()
+
+            jenis_pengaduan_str = str(row['tipe_pengaduan']).strip()
+            jenis_pengaduan_val = jenis_pengaduan_map.get(jenis_pengaduan_str)
+            if not jenis_pengaduan_val:
+                raise ValueError(f"Jenis pengaduan tidak valid di baris {index + 2}: '{jenis_pengaduan_str}'")
+
+            ticket = Ticket(
+                nomor_ticket=nomor_ticket,
+                tanggal=tanggal_value,
+                nama_nasabah=row['nama_nasabah'],
+                jenis_pengaduan=jenis_pengaduan_val,
+                detail_pengaduan=row['detail_pengaduan'],
+                order_no=row['order_no'],
+                nama_os=row['os'],
+                nama_dc=row['dc'],
+                nama_bucket=row['bucket'],
+                input_by=current_user.id,
+                sla=10,
+                status_ticket='1',
+                created_time=datetime.utcnow()
+            )
+
+            db.session.add(ticket)
+
+        db.session.commit()
+        flash("Berhasil mengimport data dari Excel", 'success')
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Gagal import: {e}", 'danger')
+
+    return redirect(request.referrer)
+
+@app.route("/case-valid")
+@login_required
+def case_valid():
+    page = request.args.get('page', 1, type=int)
+    jenis = request.args.get('jenis')
+    status = request.args.get('status')
+    tanggal = request.args.get('tanggal')
+
+    query = Ticket.query.options(joinedload(Ticket.nomor_ticket))\
+        .filter(Ticket.status_case == 'valid')
+
+    if jenis:
+        query = query.filter(Ticket.jenis_pengaduan == jenis)
+    if status:
+        query = query.filter(Ticket.status_ticket == status)
+    if tanggal:
+        try:
+            tanggal_obj = datetime.strptime(tanggal, "%Y-%m-%d")
+            query = query.filter(func.date(Ticket.tanggal) == tanggal_obj.date())
+        except ValueError:
+            pass
+
+    query = query.order_by(Ticket.created_time.desc())
+
+    per_page = 10
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+
+    return render_template(
+        "case_valid.html",
+        user=current_user,
+        tickets=pagination
+    )
+
+@app.route('/upload-document/<int:ticket_id>', methods=['POST'])
+@login_required
+def upload_document(ticket_id):
+    ticket = Ticket.query.get_or_404(ticket_id)
+    files = request.files.getlist('documents')
+    uploaded_files = []
+
+    for file in files:
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(UPLOAD_FOLDER, filename)
+
+            if os.path.exists(filepath):
+                name, ext = os.path.splitext(filename)
+                filename = f"{name}_{datetime.utcnow().timestamp()}{ext}"
+                filepath = os.path.join(UPLOAD_FOLDER, filename)
+
+            file.save(filepath)
+            uploaded_files.append(filename)
+
+    if ticket.document:
+        existing_files = ticket.document.split(',')
+        all_files = existing_files + uploaded_files
+    else:
+        all_files = uploaded_files
+
+    ticket.document = ','.join(all_files)
+    db.session.commit()
+
+    flash(f'{len(uploaded_files)} dokumen berhasil diupload.', 'success')
+    return redirect(request.referrer or url_for('case_valid'))
+
+@app.route('/hapus-dokumen/<int:ticket_id>', methods=['POST'])
+@login_required
+def hapus_dokumen(ticket_id):
+    filename = request.form.get('filename')
+    ticket = Ticket.query.get_or_404(ticket_id)
+
+    if not filename or filename not in (ticket.document or ''):
+        flash('File tidak ditemukan atau tidak valid.', 'danger')
+        return redirect(request.referrer)
+
+    file_path = os.path.join('static/uploads', filename)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
+    dokumen_list = ticket.document.split(',')
+    dokumen_list.remove(filename)
+    ticket.document = ','.join(dokumen_list)
+    db.session.commit()
+
+    flash(f'File {filename} berhasil dihapus.', 'success')
+    return redirect(request.referrer)
 
 if __name__ == '__main__':
     with app.app_context():
