@@ -19,6 +19,25 @@
 		<link href="../static/assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
 	</head>
 	<body id="kt_body" class="header-fixed header-tablet-and-mobile-fixed toolbar-enabled toolbar-fixed aside-enabled aside-fixed" style="--kt-toolbar-height:55px;--kt-toolbar-height-tablet-and-mobile:55px">
+		{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="alert-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+        {% for category, message in messages %}
+        <div class="alert 
+            {% if category == 'error' %}alert-danger
+            {% elif category == 'success' %}alert-success
+            {% else %}alert-info
+            {% endif %}
+            alert-dismissible fade show shadow-sm" role="alert" id="flash-alert-{{ loop.index }}">
+            <strong>
+                {% if category == 'success' %}Success!{% elif category == 'error' %}Error!{% else %}Notice!{% endif %}
+            </strong> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
 		<div class="d-flex flex-column flex-root">
 			<div class="page d-flex flex-row flex-column-fluid">
 				<div id="kt_aside" class="aside aside-dark aside-hoverable" data-kt-drawer="true" data-kt-drawer-name="aside" data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="{default:'200px', '300px': '250px'}" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_aside_mobile_toggle">
@@ -59,58 +78,8 @@
 										<span class="menu-title">Dashboard</span>
 									</a>
 								</div>
-								<div class="menu-item">
-									<a class="menu-link" href="{{ url_for('list_user') }}">
-										<span class="menu-icon">
-											<span class="svg-icon svg-icon-2">
-												<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-													<path d="M6.28548 15.0861C7.34369 13.1814 9.35142 12 11.5304 12H12.4696C14.6486 12 16.6563 13.1814 17.7145 15.0861L19.3493 18.0287C20.0899 19.3618 19.1259 21 17.601 21H6.39903C4.87406 21 3.91012 19.3618 4.65071 18.0287L6.28548 15.0861Z" fill="black" />
-													<rect opacity="0.3" x="8" y="3" width="8" height="8" rx="4" fill="black" />
-												</svg>
-											</span>
-										</span>
-										<span class="menu-title">List User</span>
-									</a>
-								</div>
-								<div class="menu-item">
-									<a class="menu-link" href="{{ url_for('pengaduan') }}">
-										<span class="menu-icon">
-											<span class="svg-icon svg-icon-2">
-												<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-													<path opacity="0.3" d="M21.25 18.525L13.05 21.825C12.35 22.125 11.65 22.125 10.95 21.825L2.75 18.525C1.75 18.125 1.75 16.725 2.75 16.325L4.04999 15.825L10.25 18.325C10.85 18.525 11.45 18.625 12.05 18.625C12.65 18.625 13.25 18.525 13.85 18.325L20.05 15.825L21.35 16.325C22.35 16.725 22.35 18.125 21.25 18.525ZM13.05 16.425L21.25 13.125C22.25 12.725 22.25 11.325 21.25 10.925L13.05 7.62502C12.35 7.32502 11.65 7.32502 10.95 7.62502L2.75 10.925C1.75 11.325 1.75 12.725 2.75 13.125L10.95 16.425C11.65 16.725 12.45 16.725 13.05 16.425Z" fill="black" />
-													<path d="M11.05 11.025L2.84998 7.725C1.84998 7.325 1.84998 5.925 2.84998 5.525L11.05 2.225C11.75 1.925 12.45 1.925 13.15 2.225L21.35 5.525C22.35 5.925 22.35 7.325 21.35 7.725L13.05 11.025C12.45 11.325 11.65 11.325 11.05 11.025Z" fill="black" />
-												</svg>
-											</span>
-										</span>
-										<span class="menu-title">Pengaduan</span>
-									</a>
-								</div>
-								<div class="menu-item">
-									<a class="menu-link" href="../../demo1/dist/dashboards/only-header.html">
-										<span class="menu-icon">
-											<span class="svg-icon svg-icon-2">
-												<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-													<path opacity="0.3" d="M20 21H3C2.4 21 2 20.6 2 20V10C2 9.4 2.4 9 3 9H20C20.6 9 21 9.4 21 10V20C21 20.6 20.6 21 20 21Z" fill="black" />
-													<path d="M20 7H3C2.4 7 2 6.6 2 6V3C2 2.4 2.4 2 3 2H20C20.6 2 21 2.4 21 3V6C21 6.6 20.6 7 20 7Z" fill="black" />
-												</svg>
-											</span>
-										</span>
-										<span class="menu-title">Only Header</span>
-									</a>
-								</div>
 							</div>
 						</div>
-					</div>
-					<div class="aside-footer flex-column-auto pt-5 pb-7 px-5" id="kt_aside_footer">
-						<a href="../../demo1/dist/documentation/getting-started.html" class="btn btn-custom btn-primary w-100" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss-="click" title="200+ in-house components and 3rd-party plugins">
-							<span class="btn-label">Docs &amp; Components</span>
-							<span class="svg-icon btn-icon svg-icon-2">
-								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-									<path opacity="0.3" d="M19 22H5C4.4 22 4 21.6 4 21V3C4 2.4 4.4 2 5 2H14L20 8V21C20 21.6 19.6 22 19 22ZM15 17C15 16.4 14.6 16 14 16H8C7.4 16 7 16.4 7 17C7 17.6 7.4 18 8 18H14C14.6 18 15 17.6 15 17ZM17 12C17 11.4 16.6 11 16 11H8C7.4 11 7 11.4 7 12C7 12.6 7.4 13 8 13H16C16.6 13 17 12.6 17 12ZM17 7C17 6.4 16.6 6 16 6H8C7.4 6 7 6.4 7 7C7 7.6 7.4 8 8 8H16C16.6 8 17 7.6 17 7Z" fill="black" />
-									<path d="M15 8H20L14 2V7C14 7.6 14.4 8 15 8Z" fill="black" />
-								</svg>
-							</span>
-						</a>
 					</div>
 				</div>
 				<div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
@@ -140,11 +109,6 @@
 													<span class="menu-title">Dashboard</span>
 												</a>
 											</div>
-                                            <div class="menu-item me-lg-1">
-												<a class="menu-link py-3" href="{{ url_for('list_user') }}">
-													<span class="menu-title">List User</span>
-												</a>
-											</div>
 										</div>
 									</div>
 								</div>
@@ -170,16 +134,6 @@
 												<div class="menu-item px-5">
 													<a href="{{ url_for('logout') }}" class="menu-link px-5">Sign Out</a>
 												</div>
-												<div class="separator my-2"></div>
-												<div class="menu-item px-5">
-													<div class="menu-content px-5">
-														<label class="form-check form-switch form-check-custom form-check-solid pulse pulse-success" for="kt_user_menu_dark_mode_toggle">
-															<input class="form-check-input w-30px h-20px" type="checkbox" value="1" name="mode" id="kt_user_menu_dark_mode_toggle" data-kt-url="../../demo1/dist/index.html" />
-															<span class="pulse-ring ms-n1"></span>
-															<span class="form-check-label text-gray-600 fs-7">Dark Mode</span>
-														</label>
-													</div>
-												</div>
 											</div>
 										</div>
 										<div class="d-flex align-items-center d-lg-none ms-2 me-n3" title="Show header menu">
@@ -201,165 +155,159 @@
 						<div class="toolbar" id="kt_toolbar">
 							<div id="kt_toolbar_container" class="container-fluid d-flex flex-stack">
 								<div data-kt-swapper="true" data-kt-swapper-mode="prepend" data-kt-swapper-parent="{default: '#kt_content_container', 'lg': '#kt_toolbar_container'}" class="page-title d-flex align-items-center flex-wrap me-3 mb-5 mb-lg-0">
-									<h1 class="d-flex align-items-center text-dark fw-bolder fs-3 my-1">Dashboard
+									<h1 class="d-flex align-items-center text-dark fw-bolder fs-3 my-1">List User
 									<span class="h-20px border-gray-200 border-start ms-3 mx-2"></span>
-									<small class="text-muted fs-7 fw-bold my-1 ms-1">{{ user.username }}</small>
+									<small class="text-muted fs-7 fw-bold my-1 ms-1">{{ user.role }}</small>
 								</div>
 							</div>
 						</div>
 						<div class="post d-flex flex-column-fluid" id="kt_post">
-							<div id="kt_content_container" class="container-xxl">
-								<div class="row g-xxl-9">
-									<div class="col-xxl-12">
-										<div class="card card-xxl-stretch mb-5 mb-xl-10">
-											<div class="card-header card-header-stretch">
-												<div class="card-title">
-													<h3 class="m-0 text-gray-900">Detail Pengaduan</h3>
-												</div>
-												<div class="card-toolbar">
-													<ul class="nav nav-tabs nav-line-tabs nav-stretch border-transparent fs-5 fw-bolder" id="kt_security_summary_tabs">
-														<li class="nav-item">
-															<a class="nav-link text-active-primary active" data-kt-countup-tabs="true" data-bs-toggle="tab" href="#kt_security_summary_tab_pane_hours">Day</a>
-														</li>
-														<li class="nav-item">
-															<a class="nav-link text-active-primary" data-kt-countup-tabs="true" data-bs-toggle="tab" id="kt_security_summary_tab_day" href="#kt_security_summary_tab_pane_day">Week</a>
-														</li>
-														<li class="nav-item">
-															<a class="nav-link text-active-primary" data-kt-countup-tabs="true" data-bs-toggle="tab" id="kt_security_summary_tab_week" href="#kt_security_summary_tab_pane_week">Month</a>
-														</li>
-													</ul>
-												</div>
-											</div>
-											<div class="card-body pt-7 pb-0 px-0">
-												<div class="tab-content">
-													<div class="tab-pane fade active show" id="kt_security_summary_tab_pane_hours" role="tabpanel">
-														<div class="row p-0 mb-5 px-9">
-															<div class="col">
-																<div class="border border-dashed border-gray-300 text-center min-w-125px rounded pt-4 pb-2 my-3">
-																	<span class="fs-4 fw-bold text-success d-block">Total Pengaduan</span>
-																	<span class="fs-2hx fw-bolder text-gray-900" data-kt-countup="true" data-kt-countup-value="36899">0</span>
-																</div>
-															</div>
-															<div class="col">
-																<div class="border border-dashed border-gray-300 text-center min-w-125px rounded pt-4 pb-2 my-3">
-																	<span class="fs-4 fw-bold text-primary d-block">Admin Sign-in</span>
-																	<span class="fs-2hx fw-bolder text-gray-900" data-kt-countup="true" data-kt-countup-value="72">0</span>
-																</div>
-															</div>
-															<div class="col">
-																<div class="border border-dashed border-gray-300 text-center min-w-125px rounded pt-4 pb-2 my-3">
-																	<span class="fs-4 fw-bold text-danger d-block">Failed Attempts</span>
-																	<span class="fs-2hx fw-bolder text-gray-900" data-kt-countup="true" data-kt-countup-value="291">0</span>
-																</div>
-															</div>
-														</div>
-														<div class="pt-2">
-															<div class="d-flex align-items-center pb-6 px-9">
-																<h3 class="m-0 text-gray-900 flex-grow-1">Activity Chart</h3>
-																<ul class="nav nav-pills nav-line-pills border rounded p-1">
-																	<li class="nav-item me-2">
-																		<a class="nav-link btn btn-active-light btn-active-color-gray-700 btn-color-gray-400 py-2 px-5 fs-6 fw-bold active" data-bs-toggle="tab" id="kt_security_summary_tab_hours_agents" href="#kt_security_summary_tab_pane_hours_agents">Agents</a>
-																	</li>
-																	<li class="nav-item">
-																		<a class="nav-link btn btn-active-light btn-active-color-gray-700 btn-color-gray-400 py-2 px-5 fs-6 fw-bold" data-bs-toggle="tab" id="kt_security_summary_tab_hours_clients" href="#kt_security_summary_tab_pane_hours_clients">Clients</a>
-																	</li>
-																</ul>
-															</div>
-															<div class="tab-content px-3">
-																<div class="tab-pane fade active show" id="kt_security_summary_tab_pane_hours_agents" role="tabpanel">
-																	<div id="kt_security_summary_chart_hours_agents" style="height: 300px"></div>
-																</div>
-																<div class="tab-pane fade" id="kt_security_summary_tab_pane_hours_clients" role="tabpanel">
-																	<div id="kt_security_summary_chart_hours_clients" style="height: 300px"></div>
-																</div>
-															</div>
-														</div>
-													</div>
-													<div class="tab-pane fade" id="kt_security_summary_tab_pane_day" role="tabpanel">
-														<div class="row p-0 mb-5 px-9">
-															<div class="col">
-																<div class="border border-dashed border-gray-300 text-center min-w-125px rounded pt-4 pb-2 my-3">
-																	<span class="fs-4 fw-bold text-success d-block">User Sign-in</span>
-																	<span class="fs-2hx fw-bolder text-gray-800" data-kt-countup="true" data-kt-countup-value="30467">0</span>
-																</div>
-															</div>
-															<div class="col">
-																<div class="border border-dashed border-gray-300 text-center min-w-125px rounded pt-4 pb-2 my-3">
-																	<span class="fs-4 fw-bold text-primary d-block">Admin Sign-in</span>
-																	<span class="fs-2hx fw-bolder text-gray-800" data-kt-countup="true" data-kt-countup-value="120">0</span>
-																</div>
-															</div>
-															<div class="col">
-																<div class="border border-dashed border-gray-300 text-center min-w-125px rounded pt-4 pb-2 my-3">
-																	<span class="fs-4 fw-bold text-danger d-block">Failed Attempts</span>
-																	<span class="fs-2hx fw-bolder text-gray-800" data-kt-countup="true" data-kt-countup-value="23">0</span>
-																</div>
-															</div>
-														</div>
-														<div class="pt-2">
-															<div class="d-flex align-items-center pb-9 px-9">
-																<h3 class="m-0 text-gray-800 flex-grow-1">Activity Chart</h3>
-															</div>
-															<div class="tab-content">
-																<div class="tab-pane fade active show" id="kt_security_summary_tab_pane_day_agents" role="tabpanel">
-																	<div id="kt_security_summary_chart_day_agents" style="height: 300px"></div>
-																</div>
-																<div class="tab-pane fade" id="kt_security_summary_tab_pane_day_clients" role="tabpanel">
-																	<div id="kt_security_summary_chart_day_clients" style="height: 300px"></div>
-																</div>
-															</div>
-														</div>
-													</div>
-													<div class="tab-pane fade" id="kt_security_summary_tab_pane_week" role="tabpanel">
-														<div class="row p-0 mb-5 px-9">
-															<div class="col">
-																<div class="border border-dashed border-gray-300 text-center min-w-125px rounded pt-4 pb-2 my-3">
-																	<span class="fs-lg-4 fs-6 fw-bold text-success d-block">User Sign-in</span>
-																	<span class="fs-lg-2hx fs-2 fw-bolder text-gray-800" data-kt-countup="true" data-kt-countup-value="340">0</span>
-																</div>
-															</div>
-															<div class="col">
-																<div class="border border-dashed border-gray-300 text-center min-w-125px rounded pt-4 pb-2 my-3">
-																	<span class="fs-lg-4 fs-6 fw-bold text-primary d-block">Admin Sign-in</span>
-																	<span class="fs-lg-2hx fs-2 fw-bolder text-gray-800" data-kt-countup="true" data-kt-countup-value="90">0</span>
-																</div>
-															</div>
-															<div class="col">
-																<div class="border border-dashed border-gray-300 text-center min-w-125px rounded pt-4 pb-2 my-3">
-																	<span class="fs-lg-4 fs-6 fw-bold text-danger d-block">Failed Attempts</span>
-																	<span class="fs-lg-2hx fs-2 fw-bolder text-gray-800" data-kt-countup="true" data-kt-countup-value="230">0</span>
-																</div>
-															</div>
-														</div>
-														<div class="pt-2">
-															<div class="d-flex align-items-center pb-9 px-9">
-																<h3 class="m-0 text-gray-800 flex-grow-1">Activity Chart</h3>
-																<ul class="nav nav-pills nav-line-pills border rounded p-1">
-																	<li class="nav-item me-2">
-																		<a class="nav-link btn btn-active-light py-2 px-5 fs-6 btn-active-color-gray-700 btn-color-gray-400 fw-bold active" data-bs-toggle="tab" id="kt_security_summary_tab_week_agents" href="#kt_security_summary_tab_pane_week_agents">Agents</a>
-																	</li>
-																	<li class="nav-item">
-																		<a class="nav-link btn btn-active-light py-2 px-5 btn-active-color-gray-700 btn-color-gray-400 fs-6 fw-bold" data-bs-toggle="tab" id="kt_security_summary_tab_week_clients" href="#kt_security_summary_tab_pane_week_clients">Clients</a>
-																	</li>
-																</ul>
-															</div>
-															<div class="tab-content">
-																<div class="tab-pane fade active show" id="kt_security_summary_tab_pane_week_agents" role="tabpanel">
-																	<div id="kt_security_summary_chart_week_agents" style="height: 300px"></div>
-																</div>
-																<div class="tab-pane fade" id="kt_security_summary_tab_pane_week_clients" role="tabpanel">
-																	<div id="kt_security_summary_chart_week_clients" style="height: 300px"></div>
-																</div>
-															</div>
-														</div>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
+                        <div id="kt_content_container" class="container-xxl">
+                            <div class="card">
+                                <div class="card-header border-0 pt-6">
+                                    <div class="card-title">
+                                        <div class="d-flex align-items-center position-relative my-1">
+                                            <span class="svg-icon svg-icon-1 position-absolute ms-6">
+                                                
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="card-toolbar">
+                                        <div class="d-flex justify-content-end" data-kt-user-table-toolbar="base">
+                                            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                                data-bs-target="#kt_modal_add_user">
+                                                <span class="svg-icon svg-icon-2">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                        viewBox="0 0 24 24" fill="none">
+                                                        <rect opacity="0.5" x="11.364" y="20.364" width="16" height="2"
+                                                            rx="1" transform="rotate(-90 11.364 20.364)" fill="black" />
+                                                        <rect x="4.36396" y="11.364" width="16" height="2" rx="1"
+                                                            fill="black" />
+                                                    </svg>
+                                                </span>Add User</button>
+                                        </div>
+                                        <div class="modal fade" id="kt_modal_add_user" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered mw-650px">
+                                                <div class="modal-content">
+                                                    <div class="modal-header" id="kt_modal_add_user_header">
+                                                        <h2 class="fw-bolder">Add User</h2>
+                                                        <div class="btn btn-icon btn-sm btn-active-icon-primary"
+                                                            data-kt-users-modal-action="close">
+                                                            <span class="svg-icon svg-icon-1">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="24"
+                                                                    height="24" viewBox="0 0 24 24" fill="none">
+                                                                    <rect opacity="0.5" x="6" y="17.3137" width="16"
+                                                                        height="2" rx="1"
+                                                                        transform="rotate(-45 6 17.3137)"
+                                                                        fill="black" />
+                                                                    <rect x="7.41422" y="6" width="16" height="2" rx="1"
+                                                                        transform="rotate(45 7.41422 6)" fill="black" />
+                                                                </svg>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+                                                        <form method="POST" action="{{ url_for('add_user') }}">
+                                                            <div class="fv-row mb-7">
+                                                                <label
+                                                                    class="required fw-bold fs-6 mb-2">Username</label>
+                                                                <input type="text" name="username"
+                                                                    class="form-control form-control-solid"
+                                                                    placeholder="Username" required />
+                                                            </div>
+                                                            <div class="fv-row mb-7">
+                                                                <label class="required fw-bold fs-6 mb-2">Phone
+                                                                    Number</label>
+                                                                <input type="text" name="phone"
+                                                                    class="form-control form-control-solid"
+                                                                    placeholder="Phone Number" required />
+                                                            </div>
+                                                            <div class="fv-row mb-7">
+                                                                <label class="required fw-bold fs-6 mb-2">Email</label>
+                                                                <input type="email" name="email"
+                                                                    class="form-control form-control-solid"
+                                                                    placeholder="Email" required />
+                                                            </div>
+                                                            <div class="fv-row mb-7">
+                                                                <label
+                                                                    class="required fw-bold fs-6 mb-2">Password</label>
+                                                                <input type="password" name="password"
+                                                                    class="form-control form-control-solid"
+                                                                    placeholder="Password" required />
+                                                            </div>
+                                                            <div class="text-center pt-15">
+                                                                <button type="reset" class="btn btn-light me-3"
+                                                                    data-bs-dismiss="modal">Discard</button>
+                                                                <button type="submit" class="btn btn-primary">
+                                                                    <span class="indicator-label">Submit</span>
+                                                                </button>
+                                                            </div>
+                                                        </form>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body pt-0" style="height: 550px; overflow-y : scroll;">
+                                    <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_table_users">
+                                        <thead>
+                                            <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0">
+                                                <th class="min-w-125px">Nama Staff</th>
+                                                <th class="min-w-125px">Email</th>
+                                                <th class="min-w-125px">Nomor Hp</th>
+                                                <th class="min-w-100px">Hapus</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="text-gray-600 fw-bold">
+                                            {% for u in users %}
+                                            <tr>
+                                                <!-- <td>
+                                                    <div
+                                                        class="form-check form-check-sm form-check-custom form-check-solid">
+                                                        <input class="form-check-input" type="checkbox"
+                                                            value="{{ u.id }}" />
+                                                    </div>
+                                                </td> -->
+                                                <td>
+                                                    <a href="#" class="text-gray-800 text-hover-primary mb-1">{{
+                                                        u.username }}</a>
+                                                </td>
+                                                <td>{{ u.email }}</td>
+                                                <td>{{ u.phone }}</td>
+                                                <td>
+                                                    <div class="d-flex flex-shrink-0">
+                                                        <form action="{{ url_for('delete_user', user_id=u.id) }}"
+                                                            method="POST"
+                                                            onsubmit="return confirm('Yakin ingin menghapus user ini?')"
+                                                            style="display: inline;">
+                                                            <button type="submit"
+                                                                class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm">
+                                                                <span class="svg-icon svg-icon-3">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16"
+                                                                        height="16" fill="currentColor"
+                                                                        class="bi bi-trash" viewBox="0 0 16 16">
+                                                                        <path
+                                                                            d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                                                                        <path
+                                                                            d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                                                                    </svg>
+                                                                </span>
+                                                            </button>
+                                                        </form>
+
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 					</div>
 					<div class="footer py-4 d-flex flex-lg-column" id="kt_footer">
                     <div

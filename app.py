@@ -151,7 +151,9 @@ def admin_dashboard():
     if current_user.role != 'admin':
         flash('Akses ditolak: Anda bukan admin.')
         return redirect(url_for('staff_dashboard'))
-    return render_template('admin_dashboard.html', user=current_user)
+    
+    staff_users = User.query.filter_by(role='staff').all()
+    return render_template('admin_dashboard.html', user=current_user, users=staff_users)
 
 @app.route('/list_user')
 @login_required
