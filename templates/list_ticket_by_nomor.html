@@ -399,7 +399,6 @@
                                     </div>
                                     <div class="d-flex gap-2">
                                         <a href="{{ url_for('pengaduan') }}" class="btn btn-primary">Kembali</a>
-                                        <a href="" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#kt_modal_add_catatan">Catatan</a>
                                         <a href="" class="btn btn-success" data-bs-toggle="modal"data-bs-target="#kt_modal_add_order">Add Order</a>
                                     </div>
                                 </div>
@@ -410,6 +409,40 @@
                                         <div class="tab-pane fade {% if loop.first %}show active{% endif %}"
                                             id="ticket-{{ loop.index }}" role="tabpanel"
                                             aria-labelledby="ticket-tab-{{ loop.index }}">
+                                            
+                                            <div class="modal fade" id="kt_modal_add_catatan_{{ loop.index }}" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered mw-650px">
+                                                    <div class="modal-content">
+                                                        <form method="POST" action="{{ url_for('update_tahapan', nomor_ticket_id=nomor_ticket.id, ticket_id=ticket.id) }}">
+                                                            <div class="modal-header" id="kt_modal_add_catatab_header">
+                                                                <h2 class="fw-bolder">Detail Catatan Follow Up Pengaduan Nasabah</h2>
+                                                            </div>
+                                                            <div class="modal-body py-10 px-lg-17">
+                                                                <div class="scroll-y me-n7 pe-7" data-kt-scroll-offset="300px">
+                                                                    <div class="row g-9 mb-7">
+                                                                        <div class="col-md-12 fv-row">
+                                                                            <label class="fs-6 fw-bold mb-2">Catatan</label>
+                                                                            <textarea name="catatan" rows="5" class="form-control form-control-solid">{{ ticket.catatan or '' }}</textarea>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row g-9 mb-7">
+                                                                        <div class="col-md-12 fv-row">
+                                                                            <label class="fs-6 fw-bold mb-2">Tanggal Catatan : </label>
+                                                                            <span class="fw-bold fs-6 text-gray-800 text-hover-primary bold"> {{ ticket.tanggal_catatan or '-' }} </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer flex-center">
+                                                                <button type="submit" id="kt_modal_add_catatan_submit"
+                                                                    class="btn btn-primary">
+                                                                    <span class="indicator-label">Submit</span>
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <div class="card mb-5 mb-xl-10" id="kt_profile_details_view">
                                                 <div
                                                     class="card-header cursor-pointer d-flex justify-content-between align-items-center">
@@ -419,6 +452,13 @@
                                                 </div>
                                                 <div class="card-body p-9">
                                                     <form method="POST" action="{{ url_for('update_tahapan', nomor_ticket_id=nomor_ticket.id, ticket_id=ticket.id) }}">
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                            </div>
+                                                            <div class="col-md-6 text-end">
+                                                                <a href="#" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#kt_modal_add_catatan_{{ loop.index }}">Catatan</a>
+                                                            </div>
+                                                        </div>
                                                         <div class="row">
                                                             <div class="col-md-6">
                                                                 <div class="row mb-7">
@@ -448,7 +488,7 @@
                                                                 <div class="row mb-4">
                                                                     <label class="col-lg-5 fw-bold text-muted">Email</label>
                                                                     <div class="col-lg-7">
-                                                                        <input type="email" name="email" class="form-control form-control-solid" value="{{ ticket.email or '-' }}">
+                                                                        <input type="text" name="email" class="form-control form-control-solid" value="{{ ticket.email or '-' }}">
                                                                     </div>
                                                                 </div>
                                                                 <div class="row mb-4">
@@ -881,43 +921,7 @@
                                         </form>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="modal fade" id="kt_modal_add_catatan" tabindex="-1" aria-hidden="true">
-                                {% for ticket in tickets %}
-                                {% set kontak = ticket.kontaks[0] if ticket.kontaks else None %}
-                                <div class="modal-dialog modal-dialog-centered mw-650px">
-                                    <div class="modal-content">
-                                        <form method="POST" action="{{ url_for('update_tahapan', nomor_ticket_id=nomor_ticket.id, ticket_id=ticket.id) }}">
-                                            <div class="modal-header" id="kt_modal_add_catatab_header">
-                                                <h2 class="fw-bolder">Detail Catatan Follow Up Pengaduan Nasabah</h2>
-                                            </div>
-                                            <div class="modal-body py-10 px-lg-17">
-                                                <div class="scroll-y me-n7 pe-7" data-kt-scroll-offset="300px">
-                                                    <div class="row g-9 mb-7">
-                                                        <div class="col-md-12 fv-row">
-                                                            <label class="fs-6 fw-bold mb-2">Catatan</label>
-                                                            <textarea name="catatan" rows="5" class="form-control form-control-solid">{{ ticket.catatan or '' }}</textarea>
-                                                        </div>
-                                                    </div>
-                                                    <div class="row g-9 mb-7">
-                                                        <div class="col-md-12 fv-row">
-                                                            <label class="fs-6 fw-bold mb-2">Tanggal Catatan : </label>
-                                                            <span class="fw-bold fs-6 text-gray-800 text-hover-primary bold"> {{ ticket.tanggal_catatan or '-' }} </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer flex-center">
-                                                <button type="submit" id="kt_modal_add_catatan_submit"
-                                                    class="btn btn-primary">
-                                                    <span class="indicator-label">Submit</span>
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
+                            </div>f
                         </div>
                     </div>
                 </div>
