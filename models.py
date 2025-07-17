@@ -48,6 +48,9 @@ class Ticket(db.Model):
     kronologis = db.Column(db.Text, nullable=True)
     status_case = db.Column(db.String(50), nullable=True)
     document = db.Column(db.Text, nullable=True)
+    catatan = db.Column(db.Text, nullable=True)
+    tanggal_catatan = db.Column(db.String(10)) 
+
 
     nomor_ticket_id = db.Column(db.Integer, db.ForeignKey('nomor_ticket.id'), nullable=True)
     nomor_ticket = db.relationship('NomorTicket', back_populates='tickets')
@@ -85,7 +88,8 @@ class History(db.Model):
     tanggal = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     order_number = db.Column(db.String(100), nullable=True)   
     status_ticket = db.Column(db.String(50), nullable=True)   
-    tahapan = db.Column(db.String(100), nullable=True)       
+    tahapan = db.Column(db.String(100), nullable=True)
+    nama_os = db.Column(db.String(100), nullable=True)       
     create_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  
 
     user = db.relationship('User', backref=db.backref('histories', lazy=True))

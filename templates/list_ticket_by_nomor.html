@@ -357,21 +357,6 @@
                                 <h1 class="d-flex align-items-center text-dark fw-bolder fs-3 my-1">Nomor Ticket : {{
                                     nomor_ticket.nomor_ticket }}
                                 </h1>
-                                <span class="h-20px border-gray-200 border-start mx-4"></span>
-                                <ul class="breadcrumb breadcrumb-separatorless fw-bold fs-7 my-1">
-                                    <li class="breadcrumb-item text-muted">
-                                        <a href="../../demo1/dist/index.html"
-                                            class="text-muted text-hover-primary">Home</a>
-                                    </li>
-                                    <li class="breadcrumb-item">
-                                        <span class="bullet bg-gray-200 w-5px h-2px"></span>
-                                    </li>
-                                    <li class="breadcrumb-item text-muted">Account</li>
-                                    <li class="breadcrumb-item">
-                                        <span class="bullet bg-gray-200 w-5px h-2px"></span>
-                                    </li>
-                                    <li class="breadcrumb-item text-dark">Overview</li>
-                                </ul>
                             </div>
                         </div>
                     </div>
@@ -435,72 +420,47 @@
                                                 <div class="card-body p-9">
                                                     <form method="POST" action="{{ url_for('update_tahapan', nomor_ticket_id=nomor_ticket.id, ticket_id=ticket.id) }}">
                                                         <div class="row">
-                                                            <!-- Kolom Kiri -->
                                                             <div class="col-md-6">
                                                                 <div class="row mb-7">
-                                                                    <label class="col-lg-5 fw-bold text-muted">Nama
-                                                                        Lengkap</label>
+                                                                    <label class="col-lg-5 fw-bold text-muted">Nama Lengkap</label>
                                                                     <div class="col-lg-7">
-                                                                        <span class="fw-bolder fs-6 text-gray-800">{{
-                                                                            ticket.nama_nasabah or '-' }}</span>
+                                                                        <input type="text" name="nama_nasabah" class="form-control form-control-solid" value="{{ ticket.nama_nasabah or '-' }}">
                                                                     </div>
                                                                 </div>
                                                                 <div class="row mb-7">
-                                                                    <label
-                                                                        class="col-lg-5 fw-bold text-muted">NIK</label>
+                                                                    <label class="col-lg-5 fw-bold text-muted">NIK</label>
                                                                     <div class="col-lg-7">
-                                                                        <span class="fw-bolder text-gray-800 fs-6">{{
-                                                                            ticket.nik
-                                                                            or '-' }}</span>
+                                                                        <input type="text" name="nik" class="form-control form-control-solid" value="{{ ticket.nik or '-' }}">
                                                                     </div>
                                                                 </div>
-                                                                <div class="row mb-7">
-                                                                    <label class="col-lg-5 fw-bold text-muted">No HP
-                                                                        Pengajuan</label>
-                                                                    <div class="col-lg-7 d-flex align-items-center">
-                                                                        <span
-                                                                            class="fw-bolder fs-6 text-gray-800 me-2">{{
-                                                                            ticket.nomor_utama or '-' }}</span>
-                                                                        <span class="badge badge-success">Utama</span>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="row mb-7">
-                                                                    <label class="col-lg-5 fw-bold text-muted">Kontak
-                                                                        yang bisa
-                                                                        dihubungi</label>
-                                                                    <div class="col-lg-7 d-flex align-items-center">
-                                                                        <span
-                                                                            class="fw-bolder fs-6 text-gray-800 me-2">{{
-                                                                            ticket.nomor_kontak or '-' }}</span>
-                                                                        <span class="badge badge-primary">Nomor
-                                                                            Kontak</span>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="row mb-7">
-                                                                    <label
-                                                                        class="col-lg-5 fw-bold text-muted">Email</label>
+                                                                <div class="row mb-4">
+                                                                    <label class="col-lg-5 fw-bold text-muted">No HP <span class="badge badge-success">Utama</span></label>
                                                                     <div class="col-lg-7">
-                                                                        <span
-                                                                            class="fw-bold fs-6 text-gray-800 text-hover-primary">{{
-                                                                            ticket.email or '-' }}</span>
+                                                                        <input type="number" name="nomor_utama" class="form-control form-control-solid" value="{{ ticket.nomor_utama or '-' }}">
                                                                     </div>
                                                                 </div>
-                                                                <div class="row mb-7">
-                                                                    <label
-                                                                        class="col-lg-5 fw-bold text-muted">Deskripsi</label>
+                                                                <div class="row mb-4">
+                                                                    <label class="col-lg-5 fw-bold text-muted">No HP Kontak <span class="badge badge-primary">Kontak</span></label>
                                                                     <div class="col-lg-7">
-                                                                        <span
-                                                                            class="fw-bold fs-6 text-gray-800 text-hover-primary">{{
-                                                                            ticket.deskripsi_pengaduan or '-' }}</span>
+                                                                        <input type="number" name="nomor_kontak" class="form-control form-control-solid" value="{{ ticket.nomor_kontak or '-' }}">
                                                                     </div>
                                                                 </div>
-                                                                <div class="row mb-7">
-                                                                    <label
-                                                                        class="col-lg-5 fw-bold text-muted">Nomor Order</label>
+                                                                <div class="row mb-4">
+                                                                    <label class="col-lg-5 fw-bold text-muted">Email</label>
                                                                     <div class="col-lg-7">
-                                                                        <span
-                                                                            class="fw-bold fs-6 text-gray-800 text-hover-primary">{{
-                                                                            ticket.order_no or '-' }}</span>
+                                                                        <input type="email" name="email" class="form-control form-control-solid" value="{{ ticket.email or '-' }}">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row mb-4">
+                                                                    <label class="col-lg-5 fw-bold text-muted">Deksripsi</label>
+                                                                    <div class="col-lg-7">
+                                                                        <textarea name="deskripsi_pengaduan" class="form-control form-control-solid">{{ ticket.deskripsi_pengaduan or '' }}</textarea>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row mb-4">
+                                                                    <label class="col-lg-5 fw-bold text-muted">Nomor Order</label>
+                                                                    <div class="col-lg-7">
+                                                                        <input type="text" name="order_no" class="form-control form-control-solid" value="{{ ticket.order_no or '-' }}">
                                                                     </div>
                                                                 </div>
                                                                 <div class="row mb-7">
@@ -539,19 +499,33 @@
                                                                 <div class="row mb-7">
                                                                     <label class="col-lg-5 fw-bold text-muted">Nama Dc</label>
                                                                     <div class="col-lg-7">
-                                                                        <input type="text" name="nama_dc" class="form-control form-control-solid" value="{{ ticket.nama_dc or '' }}">
+                                                                        <input type="text" name="nama_dc" class="form-control form-control-solid" value="{{ ticket.nama_dc or '-' }}">
                                                                     </div>
                                                                 </div>
                                                                 <div class="row mb-7">
                                                                     <label class="col-lg-5 fw-bold text-muted">OS</label>
                                                                     <div class="col-lg-7">
-                                                                        <input type="text" name="nama_os" class="form-control form-control-solid" value="{{ ticket.nama_os or '' }}">
+                                                                        <input type="text" name="nama_os" class="form-control form-control-solid" value="{{ ticket.nama_os or '-' }}">
                                                                     </div>
                                                                 </div>
                                                                 <div class="row mb-7">
                                                                     <label class="col-lg-5 fw-bold text-muted">Bucket</label>
                                                                     <div class="col-lg-7">
-                                                                        <input type="text" name="nama_bucket" class="form-control form-control-solid" value="{{ ticket.nama_bucket or '' }}">
+                                                                        <input type="text" name="nama_bucket" class="form-control form-control-solid" value="{{ ticket.nama_bucket or '-' }}">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row mb-7">
+                                                                    <label class="col-lg-5 fw-bold text-muted">Catatan Follow Up</label>
+                                                                    <div class="col-lg-7">
+                                                                        <textarea name="catatan" class="form-control form-control-solid">{{ ticket.catatan or '' }}</textarea>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row mb-7">
+                                                                    <label class="col-lg-5 fw-bold text-muted">Tanggal Catatan</label>
+                                                                    <div class="col-lg-7">
+                                                                        <span class="fw-bold fs-6 text-gray-800 text-hover-primary">
+                                                                            {{ ticket.tanggal_catatan or '-' }}
+                                                                        </span>
                                                                     </div>
                                                                 </div>
                                                                 <div class="row mb-7">
@@ -645,25 +619,7 @@
                                                             </div>
                                                         </div>
                                                     </form>
-                                                    <div class="row">
-                                                        <div class="col-md-6">
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <div class="row mb-7">
-                                                                <label
-                                                                    class="col-lg-5 fw-bold text-muted">Status Case</label>
-                                                                <div class="col-lg-4">
-                                                                    <form method="POST" action="{{ url_for('mark_case_valid', ticket_id=ticket.id) }}"
-                                                                        onsubmit="return confirm('Apakah Anda yakin case sudah valid?');">
-                                                                        <button type="submit" class="btn btn-success"
-                                                                            {% if ticket.status_case == 'valid' %}disabled{% endif %}>
-                                                                            Case Valid
-                                                                        </button>
-                                                                    </form>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                    <hr style="height: 3px; size: 20;">
                                                     <div class="row">
                                                         <div class="col-md-6">
                                                             <form method="POST" action="{{ url_for('upload_document', ticket_id=ticket.id) }}" enctype="multipart/form-data">
@@ -678,8 +634,24 @@
                                                                 <button type="submit" class="btn btn-primary">Upload</button>
                                                             </form>
                                                         </div>
+                                                        <div class="col-md-6">
+                                                            <div class="row mb-7">
+                                                                <div class="col-lg-5">
+                                                                        <label class="col-form-label fw-bold text-muted">Status Case</label>
+                                                                    </div>
+                                                                <div class="col-lg-4">
+                                                                    <form method="POST" action="{{ url_for('mark_case_valid', ticket_id=ticket.id) }}"
+                                                                        onsubmit="return confirm('Apakah Anda yakin case sudah valid?');">
+                                                                        <button type="submit" class="btn btn-success"
+                                                                            {% if ticket.status_case == 'valid' %}disabled{% endif %}>
+                                                                            Case Valid
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                         {% if ticket.document %}
-                                                        <div class="mt-4">
+                                                        <div class="col-md-6 ">
                                                             <label class="form-label fw-bold text-muted">Dokumen Terlampir:</label>
                                                             <div class="border rounded p-3 bg-light">
                                                                 {% for file in ticket.document.split(',') %}

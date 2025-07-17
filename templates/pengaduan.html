@@ -553,7 +553,7 @@
                                             <tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">
                                                 <th class="min-w-100px">Tanggal</th>
                                                 <th class="min-w-75px">No Tiket</th>
-                                                <th class="min-w-75px">Urgency</th>
+                                                <th class="min-w-75px">Tahapan</th>
                                                 <th class="min-w-125px">Nama Nasabah</th>
                                                 <th class="min-w-125px">Kategori Pengaduan</th>
                                                 <th class="min-w-50px">SLA</th>
@@ -600,8 +600,7 @@
                                                     -
                                                     {% endif %}
                                                 </td>
-                                                <td>{{ kategori_map[ticket.kategori_pengaduan] if
-                                                    ticket.kategori_pengaduan in kategori_map else '-' }}</td>
+                                                <td>{{ ticket.tahapan or '-' }}</td>
                                                 <td>{{ ticket.nama_nasabah or '-' }}
                                                 <td>{{ jenis_map[ticket.jenis_pengaduan] if ticket.jenis_pengaduan in
                                                     jenis_map else '-' }}</td>
