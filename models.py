@@ -89,7 +89,8 @@ class History(db.Model):
     order_number = db.Column(db.String(100), nullable=True)   
     status_ticket = db.Column(db.String(50), nullable=True)   
     tahapan = db.Column(db.String(100), nullable=True)
-    nama_os = db.Column(db.String(100), nullable=True)       
+    nama_os = db.Column(db.String(100), nullable=True)
+    catatan = db.Column(db.String(100), nullable=True)       
     create_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  
 
     user = db.relationship('User', backref=db.backref('histories', lazy=True))
