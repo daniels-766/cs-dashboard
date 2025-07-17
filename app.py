@@ -1017,6 +1017,14 @@ def update_tahapan(nomor_ticket_id, ticket_id):
     nama_os = request.form.get('nama_os')
     nama_bucket = request.form.get('nama_bucket')
     nama_dc = request.form.get('nama_dc')
+    nama_nasabah = request.form.get('nama_nasabah')
+    nik = request.form.get('nik')
+    nomor_utama = request.form.get('nomor_utama')
+    nomor_kontak = request.form.get('nomor_kontak')
+    email = request.form.get('email')
+    deskripsi_pengaduan = request.form.get('deskripsi_pengaduan')
+    order_no = request.form.get('order_no')
+    catatan = request.form.get('catatan')
 
     tahapan_2 = None
     if status_ticket == '3':
@@ -1043,13 +1051,24 @@ def update_tahapan(nomor_ticket_id, ticket_id):
             order_number=tiket.order_no,
             status_ticket=status_ticket,
             tahapan=tahapan,
-            create_by=current_user.id
+            create_by=current_user.id,
+            nama_os = nama_os
         )
         db.session.add(new_history)
 
     tiket.nama_os = nama_os
     tiket.nama_bucket = nama_bucket
     tiket.nama_dc = nama_dc
+    tiket.nama_nasabah = nama_nasabah
+    tiket.nik = nik
+    tiket.nomor_utama = nomor_utama
+    tiket.nomor_kontak = nomor_kontak
+    tiket.email = email
+    tiket.deskripsi_pengaduan = deskripsi_pengaduan
+    tiket.order_no = order_no
+    tiket.catatan = catatan
+    if catatan:
+        tiket.tanggal_catatan = datetime.today().strftime('%Y-%m-%d')
 
     db.session.commit()
 
