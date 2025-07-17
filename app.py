@@ -1024,7 +1024,6 @@ def update_tahapan(nomor_ticket_id, ticket_id):
     email = request.form.get('email')
     deskripsi_pengaduan = request.form.get('deskripsi_pengaduan')
     order_no = request.form.get('order_no')
-    catatan = request.form.get('catatan')
 
     tahapan_2 = None
     if status_ticket == '3':
@@ -1038,11 +1037,7 @@ def update_tahapan(nomor_ticket_id, ticket_id):
     is_updating_tahapan = bool(status_ticket or tahapan or tahapan_2)
 
     if is_updating_tahapan:
-        if not tahapan:
-            flash('Tahapan wajib dipilih.', 'danger')
-            return redirect(url_for('list_ticket_by_nomor', nomor_ticket_id=nomor_ticket_id))
-
-        tiket.tahapan = tahapan
+        tiket.tahapan = tahapan  # boleh kosong / None
         tiket.status_ticket = status_ticket
         tiket.tahapan_2 = tahapan_2
 
@@ -1052,10 +1047,11 @@ def update_tahapan(nomor_ticket_id, ticket_id):
             status_ticket=status_ticket,
             tahapan=tahapan,
             create_by=current_user.id,
-            nama_os = nama_os
+            nama_os=nama_os
         )
         db.session.add(new_history)
 
+    # Update field lainnya
     tiket.nama_os = nama_os
     tiket.nama_bucket = nama_bucket
     tiket.nama_dc = nama_dc
@@ -1066,14 +1062,28 @@ def update_tahapan(nomor_ticket_id, ticket_id):
     tiket.email = email
     tiket.deskripsi_pengaduan = deskripsi_pengaduan
     tiket.order_no = order_no
-    tiket.catatan = catatan
-    if catatan:
-        tiket.tanggal_catatan = datetime.today().strftime('%Y-%m-%d')
 
     db.session.commit()
 
     flash('Data berhasil diperbarui.', 'success')
     return redirect(url_for('list_ticket_by_nomor', nomor_ticket_id=nomor_ticket_id))
+
+@app.route('/update-catatan/<int:ticket_id>', methods=['POST'])
+@login_required
+def update_catatan(ticket_id):
+    tiket = Ticket.query.get_or_404(ticket_id)
+    
+    catatan = request.form.get('catatan')
+    
+    if catatan:
+        tiket.catatan = catatan
+        tiket.tanggal_catatan = datetime.today().strftime('%Y-%m-%d')
+        db.session.commit()
+        flash('Catatan berhasil disimpan.', 'success')
+    else:
+        flash('Catatan tidak boleh kosong.', 'danger')
+
+    return redirect(request.referrer or url_for('list_ticket_by_nomor', nomor_ticket_id=tiket.nomor_ticket_id))
 
 @app.route('/mark-case-valid/<int:ticket_id>', methods=['POST'])
 @login_required

@@ -413,7 +413,7 @@
                                             <div class="modal fade" id="kt_modal_add_catatan_{{ loop.index }}" tabindex="-1" aria-hidden="true">
                                                 <div class="modal-dialog modal-dialog-centered mw-650px">
                                                     <div class="modal-content">
-                                                        <form method="POST" action="{{ url_for('update_tahapan', nomor_ticket_id=nomor_ticket.id, ticket_id=ticket.id) }}">
+                                                        <form method="POST" action="{{ url_for('update_catatan', ticket_id=ticket.id) }}">
                                                             <div class="modal-header" id="kt_modal_add_catatab_header">
                                                                 <h2 class="fw-bolder">Detail Catatan Follow Up Pengaduan Nasabah</h2>
                                                             </div>
