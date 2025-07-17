@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash
 from app import app
 
 username = "daniel"
-email = "daniel@gmail.com"
+email = "uatas"
 phone = "081362109160"
 password = "popopo123"
 

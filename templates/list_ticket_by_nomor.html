@@ -433,8 +433,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="card-body p-9">
-                                                    <form method="POST"
-                                                        action="{{ url_for('update_tahapan', nomor_ticket_id=nomor_ticket.id, ticket_id=ticket.id) }}">
+                                                    <form method="POST" action="{{ url_for('update_tahapan', nomor_ticket_id=nomor_ticket.id, ticket_id=ticket.id) }}">
                                                         <div class="row">
                                                             <!-- Kolom Kiri -->
                                                             <div class="col-md-6">
@@ -504,8 +503,6 @@
                                                                             ticket.order_no or '-' }}</span>
                                                                     </div>
                                                                 </div>
-                                                            </div>
-                                                            <div class="col-md-6">
                                                                 <div class="row mb-7">
                                                                     <label class="col-lg-5 fw-bold text-muted">Nomor
                                                                         Tiket</label>
@@ -516,6 +513,17 @@
                                                                         </span>
                                                                     </div>
                                                                 </div>
+                                                                <div class="row mb-7">
+                                                                    <label class="col-lg-5 fw-bold text-muted">Sisa
+                                                                        SLA</label>
+                                                                    <div class="col-lg-7">
+                                                                        <span class="fw-bold text-gray-800 fs-6">
+                                                                            {{ ticket.sla or '0' }} Hari
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
                                                                 <div class="row mb-7">
                                                                     <label class="col-lg-5 fw-bold text-muted">Jenis
                                                                         Pengaduan</label>
@@ -529,12 +537,21 @@
                                                                     </div>
                                                                 </div>
                                                                 <div class="row mb-7">
-                                                                    <label class="col-lg-5 fw-bold text-muted">Sisa
-                                                                        SLA</label>
+                                                                    <label class="col-lg-5 fw-bold text-muted">Nama Dc</label>
                                                                     <div class="col-lg-7">
-                                                                        <span class="fw-bold text-gray-800 fs-6">
-                                                                            {{ ticket.sla or '0' }} Hari
-                                                                        </span>
+                                                                        <input type="text" name="nama_dc" class="form-control form-control-solid" value="{{ ticket.nama_dc or '' }}">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row mb-7">
+                                                                    <label class="col-lg-5 fw-bold text-muted">OS</label>
+                                                                    <div class="col-lg-7">
+                                                                        <input type="text" name="nama_os" class="form-control form-control-solid" value="{{ ticket.nama_os or '' }}">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row mb-7">
+                                                                    <label class="col-lg-5 fw-bold text-muted">Bucket</label>
+                                                                    <div class="col-lg-7">
+                                                                        <input type="text" name="nama_bucket" class="form-control form-control-solid" value="{{ ticket.nama_bucket or '' }}">
                                                                     </div>
                                                                 </div>
                                                                 <div class="row mb-7">
@@ -554,12 +571,6 @@
                                                                             <option value="3" {% if
                                                                                 ticket.status_ticket=='3' %}selected{%
                                                                                 endif %}>Keberatan</option>
-                                                                            <!-- <option value="4" {% if
-                                                                                ticket.status_ticket=='4' %}selected{%
-                                                                                endif %}>Tutup</option> -->
-                                                                            <!-- <option value="5" {% if
-                                                                                ticket.status_ticket=='5' %}selected{%
-                                                                                endif %}>Reopen</option> -->
                                                                         </select>
                                                                     </div>
                                                                 </div>

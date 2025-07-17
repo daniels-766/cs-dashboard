@@ -11,6 +11,8 @@ from werkzeug.utils import secure_filename
 import pandas as pd
 from io import BytesIO
 from flask_apscheduler import APScheduler
+from pytz import timezone
+import pytz
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/dashboard-cs2'
@@ -67,14 +69,14 @@ scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
 
-@scheduler.task('cron', id='decrease_sla_daily', hour=0, minute=0)
+@scheduler.task('cron', id='decrease_sla_daily', hour=0, minute=0, timezone=timezone('Asia/Jakarta') )
 def decrease_sla():
     with app.app_context():
         tickets = Ticket.query.filter(Ticket.sla > 0).all()
         for ticket in tickets:
             ticket.sla -= 1
         db.session.commit()
-        print(f"SLA updated at {datetime.utcnow()} — {len(tickets)} ticket(s) updated.")
+        print(f"SLA updated at {datetime.now(timezone('Asia/Jakarta'))} — {len(tickets)} ticket(s) updated.")
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -496,6 +498,7 @@ def pengaduan():
     jenis = request.args.get('jenis')
     status = request.args.get('status')
     tanggal = request.args.get('tanggal')
+    q = request.args.get('q')  
 
     nomor_ticket_query = NomorTicket.query.filter(
         or_(
@@ -506,6 +509,11 @@ def pengaduan():
             )
         )
     )
+
+    if q:
+        nomor_ticket_query = nomor_ticket_query.filter(
+            NomorTicket.nomor_ticket.ilike(f"%{q}%")
+        )
 
     tickets_grouped = []
 
@@ -560,11 +568,14 @@ def pengaduan():
         ).group_by(Ticket.nomor_ticket_id).all()
     )
 
+    jumlah_tiket_aktif = NomorTicket.query.filter_by(status='aktif').count()
+
     return render_template(
         'pengaduan.html',
         user=current_user,
         tickets=pagination,
-        count_by_nomor_ticket=count_by_nomor_ticket
+        count_by_nomor_ticket=count_by_nomor_ticket,
+        jumlah_tiket_aktif=jumlah_tiket_aktif
     )
 
 @app.route('/export-ticket-excel')
@@ -1003,8 +1014,11 @@ def update_tahapan(nomor_ticket_id, ticket_id):
 
     tahapan = request.form.get('tahapan')
     status_ticket = request.form.get('status_ticket')
-    tahapan_2 = None
+    nama_os = request.form.get('nama_os')
+    nama_bucket = request.form.get('nama_bucket')
+    nama_dc = request.form.get('nama_dc')
 
+    tahapan_2 = None
     if status_ticket == '3':
         date = request.form.get('tahapan_2_date')
         desc = request.form.get('tahapan_2_desc')
@@ -1013,23 +1027,30 @@ def update_tahapan(nomor_ticket_id, ticket_id):
         followup = request.form.get('tahapan_2_followup')
         tahapan_2 = followup if followup else None
 
-    if not tahapan:
-        flash('Tahapan wajib dipilih.', 'danger')
-        return redirect(url_for('list_ticket_by_nomor', nomor_ticket_id=nomor_ticket_id))
+    is_updating_tahapan = bool(status_ticket or tahapan or tahapan_2)
 
-    tiket.tahapan = tahapan
-    tiket.status_ticket = status_ticket
-    tiket.tahapan_2 = tahapan_2
-    db.session.commit()
+    if is_updating_tahapan:
+        if not tahapan:
+            flash('Tahapan wajib dipilih.', 'danger')
+            return redirect(url_for('list_ticket_by_nomor', nomor_ticket_id=nomor_ticket_id))
 
-    new_history = History(
-        nomor_ticket=tiket.nomor_ticket.nomor_ticket,
-        order_number=tiket.order_no,
-        status_ticket=status_ticket,
-        tahapan=tahapan,
-        create_by=current_user.id
-    )
-    db.session.add(new_history)
+        tiket.tahapan = tahapan
+        tiket.status_ticket = status_ticket
+        tiket.tahapan_2 = tahapan_2
+
+        new_history = History(
+            nomor_ticket=tiket.nomor_ticket.nomor_ticket,
+            order_number=tiket.order_no,
+            status_ticket=status_ticket,
+            tahapan=tahapan,
+            create_by=current_user.id
+        )
+        db.session.add(new_history)
+
+    tiket.nama_os = nama_os
+    tiket.nama_bucket = nama_bucket
+    tiket.nama_dc = nama_dc
+
     db.session.commit()
 
     flash('Data berhasil diperbarui.', 'success')
@@ -1177,11 +1198,14 @@ def close_ticket():
         ).group_by(Ticket.nomor_ticket_id).all()
     )
 
+    jumlah_tiket_close = NomorTicket.query.filter_by(status='close').count()
+
     return render_template(
         'ticket_close.html',
         user=current_user,
         tickets=pagination,
-        count_by_nomor_ticket=count_by_nomor_ticket
+        count_by_nomor_ticket=count_by_nomor_ticket,
+        jumlah_tiket_close=jumlah_tiket_close
     )
 
 @app.route('/closed-ticket/<int:nomor_ticket_id>')
@@ -1427,11 +1451,14 @@ def reopen_ticket():
         ).group_by(Ticket.nomor_ticket_id).all()
     )
 
+    jumlah_tiket_reopen = NomorTicket.query.filter_by(status='reopen').count()
+
     return render_template(
         'reopen_ticket.html',
         user=current_user,
         tickets=pagination,
-        count_by_nomor_ticket=count_by_nomor_ticket
+        count_by_nomor_ticket=count_by_nomor_ticket,
+        jumlah_tiket_reopen=jumlah_tiket_reopen
     )
 
 @app.route('/download-template')
@@ -1441,6 +1468,9 @@ def download_template():
 @app.route('/upload', methods=['POST'])
 @login_required
 def upload_excel():
+    def safe_val(val):
+        return None if pd.isna(val) else str(val).strip()
+
     try:
         file = request.files.get('avatar')  
         if not file:
@@ -1449,7 +1479,7 @@ def upload_excel():
 
         df = pd.read_excel(file)
 
-        expected_cols = ['nomor_ticket', 'tanggal', 'nama_nasabah', 'tipe_pengaduan',
+        expected_cols = ['kanal_pengaduan','nomor_ticket', 'tanggal', 'nama_nasabah', 'tipe_pengaduan',
                          'detail_pengaduan', 'order_no', 'os', 'dc', 'bucket']
         if not all(col in df.columns for col in expected_cols):
             flash("Kolom Excel tidak sesuai template.", 'danger')
@@ -1468,8 +1498,19 @@ def upload_excel():
             "Discount / Pemutihan": 10
         }
 
+        existing_order_nos = {ticket.order_no for ticket in Ticket.query.with_entities(Ticket.order_no).all()}
+
+        inserted_order_nos = set()
+
         for index, row in df.iterrows():
-            nomor_ticket_str = str(row['nomor_ticket']).strip()
+            order_no = safe_val(row['order_no'])
+
+            if not order_no or order_no in existing_order_nos or order_no in inserted_order_nos:
+                continue
+
+            inserted_order_nos.add(order_no)
+
+            nomor_ticket_str = safe_val(row['nomor_ticket'])
             nomor_ticket = NomorTicket.query.filter_by(nomor_ticket=nomor_ticket_str).first()
             if not nomor_ticket:
                 nomor_ticket = NomorTicket(nomor_ticket=nomor_ticket_str)
@@ -1482,31 +1523,32 @@ def upload_excel():
             elif pd.isna(tanggal_value):
                 tanggal_value = datetime.utcnow()
 
-            jenis_pengaduan_str = str(row['tipe_pengaduan']).strip()
+            jenis_pengaduan_str = safe_val(row['tipe_pengaduan'])
             jenis_pengaduan_val = jenis_pengaduan_map.get(jenis_pengaduan_str)
             if not jenis_pengaduan_val:
                 raise ValueError(f"Jenis pengaduan tidak valid di baris {index + 2}: '{jenis_pengaduan_str}'")
 
             ticket = Ticket(
+                kanal_pengaduan=safe_val(row['kanal_pengaduan']),
                 nomor_ticket=nomor_ticket,
                 tanggal=tanggal_value,
-                nama_nasabah=row['nama_nasabah'],
+                nama_nasabah=safe_val(row['nama_nasabah']),
                 jenis_pengaduan=jenis_pengaduan_val,
-                detail_pengaduan=row['detail_pengaduan'],
-                order_no=row['order_no'],
-                nama_os=row['os'],
-                nama_dc=row['dc'],
-                nama_bucket=row['bucket'],
+                detail_pengaduan=safe_val(row['detail_pengaduan']),
+                order_no=order_no,
+                nama_os=safe_val(row['os']),
+                nama_dc=safe_val(row['dc']),
+                nama_bucket=safe_val(row['bucket']),
                 input_by=current_user.id,
                 sla=10,
                 status_ticket='1',
-                created_time=datetime.utcnow()
+                created_time=datetime.utcnow(),
             )
 
             db.session.add(ticket)
 
         db.session.commit()
-        flash("Berhasil mengimport data dari Excel", 'success')
+        flash(f"Berhasil mengimport data dari Excel. {len(inserted_order_nos)} data baru ditambahkan.", 'success')
 
     except Exception as e:
         db.session.rollback()
