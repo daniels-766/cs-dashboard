@@ -494,7 +494,7 @@
                                                                 <div class="row mb-4">
                                                                     <label class="col-lg-5 fw-bold text-muted">Deksripsi</label>
                                                                     <div class="col-lg-7">
-                                                                        <textarea name="deskripsi_pengaduan" rows="5" class="form-control form-control-solid">{{ ticket.deskripsi_pengaduan or '' }}</textarea>
+                                                                        <textarea name="deskripsi_pengaduan" rows="5" class="form-control form-control-solid">{{ ticket.deskripsi_pengaduan or '-' }}</textarea>
                                                                     </div>
                                                                 </div>
                                                                 <div class="row mb-7">
@@ -508,6 +508,13 @@
                                                                 </div>
                                                             </div>
                                                             <div class="col-md-6">
+                                                                <div class="row mb-7">
+                                                                    <label class="col-lg-5 fw-bold text-muted">Kanal Pengaduan</label>
+                                                                    <div class="col-lg-7">
+                                                                        <span class="fw-bold fs-6 text-gray-800 text-hover-primary"> {{ ticket.kanal_pengaduan or '-' }}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
                                                                 <div class="row mb-7">
                                                                     <label class="col-lg-5 fw-bold text-muted">Nomor Tiket</label>
                                                                     <div class="col-lg-7">
@@ -921,7 +928,7 @@
                                         </form>
                                     </div>
                                 </div>
-                            </div>f
+                            </div>
                         </div>
                     </div>
                 </div>
