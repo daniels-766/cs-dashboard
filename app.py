@@ -13,6 +13,7 @@ from io import BytesIO
 from flask_apscheduler import APScheduler
 from pytz import timezone
 import pytz
+from werkzeug.serving import is_running_from_reloader
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/dashboard-cs2'
@@ -67,7 +68,7 @@ app.config.from_object(Config())
 
 scheduler = APScheduler()
 scheduler.init_app(app)
-scheduler.start()
+# scheduler.start()
 
 @scheduler.task('cron', id='decrease_sla_daily', hour=0, minute=0, timezone=timezone('Asia/Jakarta') )
 def decrease_sla():
@@ -114,7 +115,7 @@ def home():
 @login_required
 def history():
     page = request.args.get('page', 1, type=int)
-    history_list = History.query.order_by(History.tanggal.desc()).paginate(page=page, per_page=20, error_out=False)
+    history_list = History.query.order_by(History.tanggal.desc()).paginate(page=page, per_page=10, error_out=False)
     return render_template('history.html', user=current_user, history_list=history_list)
 
 
@@ -498,7 +499,7 @@ def pengaduan():
     jenis = request.args.get('jenis')
     status = request.args.get('status')
     tanggal = request.args.get('tanggal')
-    q = request.args.get('q')  
+    q = request.args.get('q')
 
     nomor_ticket_query = NomorTicket.query.filter(
         or_(
@@ -511,15 +512,25 @@ def pengaduan():
     )
 
     if q:
-        nomor_ticket_query = nomor_ticket_query.filter(
-            NomorTicket.nomor_ticket.ilike(f"%{q}%")
-        )
+        matching_ids_from_nama = db.session.query(Ticket.nomor_ticket_id)\
+            .filter(Ticket.nama_nasabah.ilike(f"%{q}%"))\
+            .distinct().all()
+        matching_ids_from_nama = [id[0] for id in matching_ids_from_nama]
+
+        matching_ids_from_nomor = db.session.query(NomorTicket.id)\
+            .filter(NomorTicket.nomor_ticket.ilike(f"%{q}%"))\
+            .all()
+        matching_ids_from_nomor = [id[0] for id in matching_ids_from_nomor]
+
+        all_matching_ids = list(set(matching_ids_from_nama + matching_ids_from_nomor))
+
+        nomor_ticket_query = nomor_ticket_query.filter(NomorTicket.id.in_(all_matching_ids))
 
     tickets_grouped = []
 
     for nt in nomor_ticket_query.all():
         query = Ticket.query.options(joinedload(Ticket.nomor_ticket))\
-            .filter(Ticket.nomor_ticket_id == nt.id)
+            .filter(Ticket.nomor_ticket_id == nt.id, Ticket.sla != 0)
 
         if jenis:
             query = query.filter_by(jenis_pengaduan=jenis)
@@ -546,7 +557,6 @@ def pengaduan():
     start = (page - 1) * per_page
     end = start + per_page
     paginated_items = tickets_grouped[start:end]
-
     class Pagination:
         def __init__(self, items, page, per_page, total):
             self.items = items
@@ -568,7 +578,11 @@ def pengaduan():
         ).group_by(Ticket.nomor_ticket_id).all()
     )
 
-    jumlah_tiket_aktif = NomorTicket.query.filter_by(status='aktif').count()
+    jumlah_tiket_aktif = db.session.query(NomorTicket)\
+        .join(Ticket, Ticket.nomor_ticket_id == NomorTicket.id)\
+        .filter(NomorTicket.status == 'aktif', Ticket.sla != 0)\
+        .distinct()\
+        .count()
 
     return render_template(
         'pengaduan.html',
@@ -985,9 +999,9 @@ def submit_ticket():
             nomor_utama=request.form.get('nomor_utama'),
             nomor_kontak=request.form.get('nomor_kontak'),
             nik=request.form.get('nik'),
-            nama_os=request.form.get('nama_os'),
+            nama_os=request.form.get('nama_os').replace(" ", "") if request.form.get('nama_os') else None,
             nama_dc=request.form.get('nama_dc'),
-            nama_bucket=request.form.get('nama_bucket'),
+            nama_bucket=request.form.get('nama_bucket').replace(" ", "") if request.form.get('nama_bucket') else None,
             order_no=request.form.get('order_no'),
             deskripsi_pengaduan=request.form.get('deskripsi_pengaduan'),
             input_by=current_user.id,
@@ -1494,6 +1508,12 @@ def reopen_ticket():
 def download_template():
     return send_from_directory(directory='static/files', path='template_cs.xlsx', as_attachment=True)
 
+import re
+
+def clean_alpha_only(val):
+    cleaned = re.sub(r"[^a-zA-Z]", "", val) 
+    return cleaned if cleaned else None
+
 @app.route('/upload', methods=['POST'])
 @login_required
 def upload_excel():
@@ -1565,9 +1585,9 @@ def upload_excel():
                 jenis_pengaduan=jenis_pengaduan_val,
                 detail_pengaduan=safe_val(row['detail_pengaduan']),
                 order_no=order_no,
-                nama_os=safe_val(row['os']),
+                nama_os=clean_alpha_only(safe_val(row['os']).replace(" ", "")) if safe_val(row['os']) else None,
                 nama_dc=safe_val(row['dc']),
-                nama_bucket=safe_val(row['bucket']),
+                nama_bucket=safe_val(row['bucket']).replace(" ", "") if safe_val(row['bucket']) else None,
                 input_by=current_user.id,
                 sla=10,
                 status_ticket='1',
@@ -1672,7 +1692,111 @@ def hapus_dokumen(ticket_id):
     flash(f'File {filename} berhasil dihapus.', 'success')
     return redirect(request.referrer)
 
+@app.route('/sla')
+@login_required
+def sla():
+    page = request.args.get('page', 1, type=int)
+    jenis = request.args.get('jenis')
+    status = request.args.get('status')
+    tanggal = request.args.get('tanggal')
+    q = request.args.get('q')
+
+    nomor_ticket_query = NomorTicket.query.filter(
+        or_(
+            NomorTicket.status == None,
+            and_(
+                NomorTicket.status != 'close',
+                NomorTicket.status != 'reopen'
+            )
+        )
+    )
+
+    if q:
+        matching_ids_from_nama = db.session.query(Ticket.nomor_ticket_id)\
+            .filter(Ticket.nama_nasabah.ilike(f"%{q}%"))\
+            .distinct().all()
+        matching_ids_from_nama = [id[0] for id in matching_ids_from_nama]
+
+        matching_ids_from_nomor = db.session.query(NomorTicket.id)\
+            .filter(NomorTicket.nomor_ticket.ilike(f"%{q}%"))\
+            .all()
+        matching_ids_from_nomor = [id[0] for id in matching_ids_from_nomor]
+
+        all_matching_ids = list(set(matching_ids_from_nama + matching_ids_from_nomor))
+
+        nomor_ticket_query = nomor_ticket_query.filter(NomorTicket.id.in_(all_matching_ids))
+
+    tickets_grouped = []
+
+    for nt in nomor_ticket_query.all():
+        query = Ticket.query.options(joinedload(Ticket.nomor_ticket))\
+            .filter(Ticket.nomor_ticket_id == nt.id, Ticket.sla == 0)  # Hanya SLA = 0
+
+        if jenis:
+            query = query.filter_by(jenis_pengaduan=jenis)
+        if status:
+            query = query.filter_by(status_ticket=status)
+        if tanggal:
+            try:
+                tanggal_obj = datetime.strptime(tanggal, "%Y-%m-%d")
+                query = query.filter(func.date(Ticket.tanggal) == tanggal_obj.date())
+            except ValueError:
+                pass
+
+        first_ticket = query.order_by(Ticket.created_time.asc()).first()
+        if first_ticket:
+            tickets_grouped.append(first_ticket)
+
+    tickets_grouped.sort(
+        key=lambda x: x.created_time or datetime.min,
+        reverse=True
+    )
+
+    per_page = 10
+    total = len(tickets_grouped)
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_items = tickets_grouped[start:end]
+
+    class Pagination:
+        def __init__(self, items, page, per_page, total):
+            self.items = items
+            self.page = page
+            self.per_page = per_page
+            self.total = total
+            self.pages = (total + per_page - 1) // per_page
+            self.has_prev = page > 1
+            self.has_next = page < self.pages
+            self.prev_num = page - 1
+            self.next_num = page + 1
+
+    pagination = Pagination(paginated_items, page, per_page, total)
+
+    count_by_nomor_ticket = dict(
+        db.session.query(
+            Ticket.nomor_ticket_id,
+            func.count(Ticket.id)
+        ).filter(Ticket.sla == 0)  # Filter sesuai SLA
+        .group_by(Ticket.nomor_ticket_id).all()
+    )
+
+    jumlah_tiket_aktif = db.session.query(NomorTicket)\
+        .join(Ticket, Ticket.nomor_ticket_id == NomorTicket.id)\
+        .filter(NomorTicket.status == 'aktif', Ticket.sla == 0)\
+        .distinct()\
+        .count()
+
+    return render_template(
+        'sla.html',
+        user=current_user,
+        tickets=pagination,
+        count_by_nomor_ticket=count_by_nomor_ticket,
+        jumlah_tiket_aktif=jumlah_tiket_aktif
+    )
+
 if __name__ == '__main__':
+    if not is_running_from_reloader():
+        scheduler.start() 
     with app.app_context():
         db.create_all()
-    app.run(debug=True, port=5000, host='0.0.0.0')
+    app.run(debug=True, port=5007, host='0.0.0.0')
