@@ -1,6 +1,5 @@
 from flask_login import UserMixin
 from extensions import db
-from extensions import db
 from datetime import datetime
 
 class User(UserMixin, db.Model):
@@ -9,7 +8,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(150), nullable=False, unique=True)
     phone = db.Column(db.String(20), nullable=False)
     password = db.Column(db.String(200), nullable=False)
-    role = db.Column(db.String(10), default='staff')
+    role = db.Column(db.String(10))
 
 class Ticket(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -51,6 +50,8 @@ class Ticket(db.Model):
     catatan = db.Column(db.Text, nullable=True)
     tanggal_catatan = db.Column(db.String(10)) 
 
+    deskripsi_qc = db.Column(db.String(1000), nullable=True)
+    file_qc = db.Column(db.String(300), nullable=True) 
 
     nomor_ticket_id = db.Column(db.Integer, db.ForeignKey('nomor_ticket.id'), nullable=True)
     nomor_ticket = db.relationship('NomorTicket', back_populates='tickets')
@@ -64,6 +65,9 @@ class NomorTicket(db.Model):
     status = db.Column(db.String(20), default='aktif')
 
     tickets = db.relationship('Ticket', back_populates='nomor_ticket')
+
+    id_qc = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    qc_user = db.relationship('User', foreign_keys=[id_qc])
 
     def __repr__(self):
         return f"<NomorTicket {self.nomor_ticket}>"

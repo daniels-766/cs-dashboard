@@ -1,0 +1,399 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <title>Product | UATAS</title>
+
+    <meta name="description" content="Uatas Pinjaman uang online cepat cair">
+    <meta name="keywords" content="pinjaman, pinjaman online, pinjaman online 24 jam, pinjaman online OJK, pinjaman cepat, pinjol, pinjaman ojk, uatas legal, pinjaman legal, pinjaman mudah, pinjam cepat, pinjam legal">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="google-site-verification" content="n-OfHmuj1ZJvVEdag40sHxMd72XVcqILbutteHQ-lxI" />
+
+    <link rel="shortcut icon" href="../assets/images/slide/logo.png" type="image/png">
+
+    <link rel="stylesheet" href="../assets/css/animate.css">
+
+    <link rel="stylesheet" href="../assets/css/tiny-slider.css">
+
+    <link rel="stylesheet" href="../assets/fonts/lineicons/font-css/LineIcons.css">
+
+    <link rel="stylesheet" href="../assets/css/tailwindcss.css">
+
+    <link rel="stylesheet" href="../page/css/produk.css">
+
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+</head>
+
+<body>
+    <div class="preloader">
+        <div class="loader">
+            <div class="ytp-spinner">
+                <div class="ytp-spinner-container">
+                    <div class="ytp-spinner-rotator">
+                        <div class="ytp-spinner-left">
+                            <div class="ytp-spinner-circle"></div>
+                        </div>
+                        <div class="ytp-spinner-right">
+                            <div class="ytp-spinner-circle"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="header_area">
+        <div class="navbar-area bg-white">
+            <div class="container relative">
+                <div class="row items-center">
+                    <div class="w-full">
+                        <nav class="flex items-center justify-between py-4 navbar navbar-expand-lg">
+                            <a class="navbar-brand mr-5" href="../../">
+                                <img src="../assets/images/slide/logos1.png" alt="Logo" style="height: 70px; width: auto;">
+                            </a>
+                            <button class="block navbar-toggler focus:outline-none lg:hidden" type="button" data-toggle="collapse" data-target="#navbarOne" aria-controls="navbarOne" aria-expanded="false" aria-label="Toggle navigation">
+                                <span class="toggler-icon"></span>
+                                <span class="toggler-icon"></span>
+                                <span class="toggler-icon"></span>
+                            </button>
+
+                            <div class="absolute left-0 z-20 hidden w-full px-5 py-3 duration-300 bg-white lg:w-auto collapse navbar-collapse lg:block top-full mt-full lg:static lg:bg-transparent shadow lg:shadow-none" id="navbarOne">
+                                <ul id="nav" class="items-center content-start mr-auto lg:justify-end navbar-nav lg:flex">
+                                    <li class="nav-item ml-5 lg:ml-11">
+                                        <a class="page-scroll" href="../../">Beranda</a>
+                                    </li>
+                                    <li class="nav-item ml-5 lg:ml-11">
+                                        <a class="page-scroll active" href="#">Produk</a>
+                                    </li>
+                                    <li class="nav-item ml-5 lg:ml-11">
+                                        <a class="page-scroll" href="../about-us/">Tentang Kami</a>
+                                    </li>
+                                    <li class="nav-item ml-5 lg:ml-11">
+                                        <a class="page-scroll" href="../faq/">FAQ</a>
+                                    </li>
+                                    <li class="nav-item ml-5 lg:ml-11">
+                                        <a class="page-scroll" href="../contact/">Kontak</a>
+                                    </li>
+                                    <li class="nav-item ml-5 lg:ml-11">
+                                        <a class="page-scroll" href="../event/">Acara</a>
+                                    </li>
+                                    <li id="tkb90Dropdown" class="nav-item ml-5 lg:ml-11 dropdown tkb">
+                                        <a class="page-scroll border-box" href="#" onclick="toggleDropdown('tkb90DropdownMenu')"
+                                            style="display: inline-block; padding: 10px 20px; border-radius: 10px; border: 2px solid #FF6768; color: #FF6768; background-color: #FBD7D7;transition: background-color 0.3s ease;">
+                                            Periksa TKB <i class="fas fa-exclamation-circle"></i>
+                                        </a>
+                                        <ul id="tkb90DropdownMenu" class="dropdown-menu2" style="padding: 10px; border-radius: 10px;">
+                                            <li>
+                                                <p>
+                                                    <!-- TKB  -->
+                                                </p>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div> 
+                        </nav> 
+                    </div>
+                </div>
+            </div> 
+        </div> 
+    </section>
+
+    <section id="pricing" class="pricing_area pt-120 pb-120">
+        <div class="container">
+            <div class="row justify-center">
+                <div class="w-full lg:w-1/2">
+                    <div class="section_title text-center pb-6">
+                        <h4 class="main_title">Ringkasan Produk & Layanan</h4>
+                    </div> 
+                </div>
+            </div> 
+            <div class="row">
+                <div class="w-full">                    
+                    <div class="pricing_content mt-6_area">
+                        <div class="tab-content">
+                            <div>
+                                <div class="row justify-center">                                    
+                                    <div style="display: flex; width: 100%; max-width: 500px; gap: 20px; margin-bottom: 20px; margin-top: 50px; justify-content: center;">
+                                        <li style="
+                                            list-style: none;
+                                            flex: 1;
+                                            border: 1px solid #e5e7eb;
+                                            border-radius: 12px;
+                                            padding: 20px;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: flex-start;
+                                            background: linear-gradient(135deg, #ffffff, #f9fafb);
+                                            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+                                            transition: transform 0.3s ease, box-shadow 0.3s ease;
+                                            cursor: pointer;
+                                        "
+                                        onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.15)';"
+                                        onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.06)';"
+                                        >
+                                            <div style="display: flex; align-items: center; width: 100%;">
+                                                <div class="about_check" style="max-width: 40px; margin-right: 18px; flex-shrink: 0;">
+                                                    <img src="../assets/images/ic/riplay.png" alt="Checkmark" style="width: 100%; height: auto;">
+                                                </div>
+                                                <div class="about_list_content" style="margin: 0;">
+                                                    <p style="color: #111827; font-size: 18px; font-weight: 600; margin: 0 0 6px 0;">Product Types and Main Features</p>
+                                                    <!-- <p style="color: #111827; font-size: 18px; font-weight: 600; margin: 0 0 0 0;">RIPLAY</p> -->
+                                                    <!-- <p style="margin: 0 0 6px 0;">Platform jasa keuangan yang berfokus pada penyaluran
+                                                    Pendanaan dengan menjembatani antara Pemberi Dana dan
+                                                    Penerima Dana dalam wilayah Negara Kesatuan Republik
+                                                    Indonesia</p> -->
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div> 
+                </div>
+            </div>                                      
+        </div> 
+        <div class="container">
+            <div class="row justify-center">
+                <div class="w-full lg:w-1/2">
+                    <div class="section_title text-center pb-6">
+                        <h5 class="sub_title">Detail Produk Kami</h5>
+                    </div> 
+                </div>
+            </div>
+            <div class="row">
+                <div class="w-full">                    
+                    <div class="pricing_content mt-6_area">
+                        <div class="tab-content">
+                            <div>
+                                <div class="row justify-center">                                    
+                                    <div class="w-full sm:w-9/12 md:w-7/12 lg:w-4/12 mr-5 ml-5">
+                                        <div class="single_pricing text-center mt-8 active">
+                                            <div class="pricing_title relative inline-block">
+                                                <h4 class="title group-hover:text-white">Rp 1.000.000</h4>
+                                                <svg xmlns="http://www.w3.org/2000/svg" style="border-radius: 30px;" width="auto" height="60" viewBox="0 0 350 60">
+                                                    <rect width="350" height="60" fill="#f94f4f"/>
+                                                </svg>
+                                            </div>
+                                            
+                                            <div class="pricing_content mt-6" style="font-size: 14px;">
+                                                <div class="row justify-between" style="text-align: start;">
+                                                    <a style="color: black; font-weight: bold;">Jangka Waktu Pendanaan : </a>
+                                                    <a style="color: #FF6768; font-weight: bold;">80 Hari</a>
+                                                </div>
+                                                <p style="border-bottom: 2px dashed silver; margin-top: 20px; margin-bottom: 20px;"></p>
+                                                <div class="row justify-between" style="text-align: start;">
+                                                    <a>Jumlah yang diterima : </a>
+                                                    <a style="font-weight: bold; color: black;">Rp 1.000.000</a>
+                                                    <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: start; width: 100%; flex-wrap: wrap;">
+                                                        <div style="display: flex; flex-direction: column; flex: 1; min-width: 200px;">
+                                                            <span>Bunga & Layanan (0.3% per hari)</span>
+                                                            <span style="color:gray; font-size: 14px;">+ PPN : </span>
+                                                        </div>
+                                                        <div style="font-weight: bold; color: black; white-space: nowrap;">
+                                                            Rp 242.112
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <p style="border-bottom: 2px dashed silver; margin-top: 20px; margin-bottom: 20px;"></p>
+                                                <div class="row justify-between" style="text-align: start;">
+                                                    <a style="color: black; font-weight: bold;">Total Pengembalian : </a>
+                                                    <a style="color: black; font-weight: bold;">Rp 1.242.112</a>
+                                                    <a>*Denda Keterlambatan 0.3% per hari</a>
+                                                </div>
+                                                <p class="mt-4 leading-9"></p>
+                                            </div>
+                                        </div> 
+                                    </div>
+                                    <div class="w-full sm:w-9/12 md:w-7/12 lg:w-4/12 ml-5 mr-5">
+                                        <div class="single_pricing text-center mt-8 active">
+                                            <div class="pricing_title relative inline-block">
+                                                <h4 class="title group-hover:text-white">Rp 1.000.000</h4>
+                                                <svg xmlns="http://www.w3.org/2000/svg" style="border-radius: 30px;" width="auto" height="60" viewBox="0 0 350 60">
+                                                    <rect width="350" height="60" fill="#f94f4f"/>
+                                                </svg>
+                                            </div>
+                                            
+                                            <div class="pricing_content mt-6" style="font-size: 14px;">
+                                                <div class="row justify-between" style="text-align: start;">
+                                                    <a style="color: black; font-weight: bold;">Jangka Waktu Pendanaan : </a>
+                                                    <a style="color: #FF6768; font-weight: bold;">90 Hari</a>
+                                                </div>
+                                                <p style="border-bottom: 2px dashed silver; margin-top: 20px; margin-bottom: 20px;"></p>
+                                                <div class="row justify-between" style="text-align: start;">
+                                                    <a>Jumlah yang diterima : </a>
+                                                    <a style="font-weight: bold; color: black;">Rp 1.000.000</a>
+                                                    <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: start; width: 100%; flex-wrap: wrap;">
+                                                        <div style="display: flex; flex-direction: column; flex: 1; min-width: 200px;">
+                                                            <span>Bunga & Layanan (0.3% per hari)</span>
+                                                            <span style="color:gray; font-size: 14px;">+ PPN : </span>
+                                                        </div>
+                                                        <div style="font-weight: bold; color: black; white-space: nowrap;">
+                                                            Rp 272.376
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <p style="border-bottom: 2px dashed silver; margin-top: 20px; margin-bottom: 20px;"></p>
+                                                <div class="row justify-between" style="text-align: start;">
+                                                    <a style="color: black; font-weight: bold;">Total Pengembalian : </a>
+                                                    <a style="color: black; font-weight: bold;">Rp 1.272.376</a>
+                                                    <a>*Denda Keterlambatan 0.3% per hari</a>
+                                                </div>
+                                                <p class="mt-4 leading-9"></p>
+                                            </div>
+                                        </div> 
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div> 
+                </div>
+            </div>
+        </div> 
+    </section>
+
+    <footer id="footer" class="footer_area bg-black relative z-10">
+        <div class="container">
+            <div class="footer_widget pt-18 pb-120">
+                <div class="row justify-center">
+                    <div class="w-full md:w-1/2 lg:w-1/2">
+                        <div class="footer_about mt-13 mx-auto">
+                            <div class="footer_logo">
+                                <a href="#"><img src="../assets/images/slide/logo-uatas.png" style="max-width: 60%;" alt=""></a>
+                            </div>
+                            <div class="footer_content mt-8">
+                                <h5 class="text-white font-semibold">UATAS berizin dan diawasi oleh Otoritas Jasa Keuangan</h5>
+                            </div>
+                            <br>                            
+                            <h2 class="footer_title text-xl font-semibold text-white">Anggota Dari</h2>
+                            <div style="margin-bottom: 15px;">
+                                <ul class="link pt-4 horizontal-list" style="width: 40%;">
+                                    <li><a href="https://www.afpi.or.id/" target="_blank" class="text-white mt-4 hover:text-theme-color social-media-icon"><img src="../assets/images/izin/afpi.jpg"></i></li>
+                                    <!-- <li><a href="https://kan.or.id/index.php" target="_blank" class="text-white mt-4 hover:text-theme-color social-media-icon"><img style="width: 50rem;" src="https://kan.or.id/images/kan.png"></i></li> -->
+                                </ul>
+                            </div>
+                            <h2 class="footer_title text-xl font-semibold text-white">Social Media</h2>
+                            <ul class="link pt-4 horizontal-list akun-sosmed">
+                                <li style="display: none;"><a href="https://www.facebook.com/UATASID/" target="_blank" class="text-white mt-4 hover:text-theme-color social-media-icon"><i class="fab fa-facebook"></i>&nbsp;<p class="teks">UATAS</p></a>&nbsp; </li>
+                                <li><a href="https://www.facebook.com/UATASID/" target="_blank" class="text-white mt-4 hover:text-theme-color social-media-icon"><i class="fab fa-facebook"></i>&nbsp; <p class="teks">UATAS</p></a>&nbsp; </li>
+                                <li><a href="https://www.instagram.com/uatas.id/" target="_blank" class="text-white mt-4 hover:text-theme-color social-media-icon"><i class="fab fa-instagram"></i>&nbsp; <p class="teks">uatas.id</p></a>&nbsp;</li>
+                                <li><a href="https://x.com/UATASID" target="_blank" class="text-white mt-4 hover:text-theme-color social-media-icon"><i class="fab fa-twitter"></i>&nbsp; <p class="teks">UATASID</p></a></li>
+                                <li><a href="https://www.youtube.com/@uatasid/" target="_blank" class="text-white mt-4 hover:text-theme-color social-media-icon"><i class="fab fa-youtube"></i>&nbsp; <p class="teks">UATASID</p></a></li>
+                                <li><a href="https://www.tiktok.com/@uatasid" target="_blank" class="text-white mt-4 hover:text-theme-color social-media-icon"><i class="fab fa-tiktok"></i>&nbsp; <p class="teks">uatasid</p></a></li>  
+                            </ul>                              
+                        </div>
+                        <div data-v-51a0781c="" class="link" style="color: white;">
+                            <ul data-v-51a0781c="">
+                                <li data-v-51a0781c="">
+                                    <a data-v-51a0781c="" href="../assets/txt/SYARAT DAN KETENTUAN PENGGUNAAN LAYANAN UATAS.pdf" target="view_window"><u>Syarat dan Ketentuan</u></a>
+                                </li> 
+                                <li data-v-51a0781c="">
+                                    <a data-v-51a0781c="" href="../assets/txt/Kebijakan Privasi.pdf" target="view_window"><u>Kebijakan Privasi</u></a>
+                                </li> <li data-v-51a0781c="">
+                                    <a data-v-51a0781c="" href="../assets/txt/Mekanisme dan Layanan Pengaduan Konsumen.pdf" target="view_window"><u>Mekanisme dan Layanan Pengaduan Konsumen</u></a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-1/2 lg:w-1/2">
+                        <div class="footer_subscribe mt-13 mx-auto">
+                            <ul class="link pt-4 horizontal-list" style="margin: 10px;">
+                                <div class="mb-20 hover-container" style="width: 50%; margin-right: 20px; cursor: pointer; background-color: white; border-radius: 10px; display: flex; justify-content: center; padding: 0.5rem 0px;">
+                                    <a href="https://play.google.com/store/apps/details?id=com.uatas.android" target="_blank">
+                                        <img src="../assets/images/download/gp.png" style="width: auto; height: 2rem;">
+                                        <img src="https://res.cloudinary.com/dpfql3ixg/image/upload/v1704689493/google_of8kha.png" class="hover-img" style="width: 200px; height: auto;border-radius: 10px;">
+                                    </a>
+                                </div>
+                                <br>
+                                <div class="mb-20 hover-container" style="width: 50%; cursor: pointer; background-color: white; border-radius: 10px; display: flex; justify-content: center; padding: 0.5rem 0px;">
+                                    <a href="https://apps.apple.com/id/app/uatas-pinjaman-uang-online/id1610701493" target="_blank">
+                                        <img src="../assets/images/download/app.png" style="width: auto; height: 2rem;">
+                                        <img src="https://res.cloudinary.com/dpfql3ixg/image/upload/v1704689508/ios_dg6rnm.png" class="hover-img" style="width: 200px; height: auto;border-radius: 10px;">
+                                    </a>
+                                </div>
+                            </ul>
+                            
+                            <div class="footer_content mt-8 flex items-center" style="display: flex;">
+                                <div class="w-1/2 pr-2" style="padding: 30px;">
+                                    <iframe  style="border-radius: 10px;"
+                                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.2672018420853!2d106.82152192553477!3d-6.228460293759681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f3e4a175a33f%3A0xc96c83f443f46e81!2sDea%20Tower%2C%20Jl.%20Mega%20Kuningan%20Barat%20No.1%2C%20RT.5%2FRW.2%2C%20Kuningan%2C%20East%20Kuningan%2C%20Setiabudi%2C%20South%20Jakarta%20City%2C%20Jakarta%2012950!5e0!3m2!1sen!2sid!4v1748235752939!5m2!1sen!2sid"
+                                        width="240"
+                                        height="140"
+                                        allowFullScreen=""
+                                        loading="lazy"
+                                        referrerPolicy="no-referrer-when-downgrade">
+                                    </iframe>
+                                </div>
+                                <div class="w-1/2 pl-1" style="margin-top: -20px;">
+                                    <h2 class="text-xl font-semibold text-white" style="font-size: 12px;">Kantor Pusat</h2>
+                                    <ul class="pt-0">
+                                        <li>
+                                            <p class="text-white m-0" style="font-size: 12px;">
+                                                Menara Dea Tower 2 Lt 15 Unit 1502 
+                                                <br>Jl. Mega Kuningan Barat No.1 RT.5/RW.2,Kuningan, Kuningan Timur, Setiabudi, Jakarta Selatan, DKI Jakarta 12950
+                                            </p>
+                                        </li>
+                                        <li style="font-size: 12px;"><a href="tel:+62 21 5760988" class="text-white mt-4 hover:text-theme-color"><i class="lni lni-phone"></i>&nbsp; 5760 988</a> &nbsp;</li>
+                                        <li style="font-size: 12px;"><a class="text-white mt-4 hover:text-theme-color"><i class="lni lni-alarm-clock"></i>&nbsp; Senin - Jumat&nbsp; 09.00 - 18.00 WIB</a></li>
+                                    </ul>
+                                </div>
+                            </div>    
+                            
+                            <div class="footer_content mt-8 flex items-center" style="display: flex;">
+                                <div class="w-1/2 pr-2" style="padding: 30px;">
+                                    <iframe style="border-radius: 10px;"
+                                        src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d416.9674677341074!2d106.78035695749162!3d-6.146086424090689!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zNsKwMDgnNDUuOSJTIDEwNsKwNDYnNTAuMSJF!5e0!3m2!1sen!2sid!4v1722565404617!5m2!1sen!2sid"
+                                        width="240"
+                                        height="140"
+                                        allowFullScreen=""
+                                        loading="lazy"
+                                        referrerPolicy="no-referrer-when-downgrade">
+                                    </iframe>
+                                </div>
+                                <div class="w-1/2 pl-1"  style="margin-top: -20px;">
+                                    <h2 class="text-xl font-semibold text-white" style="font-size: 12px;">Customer Service</h2>
+                                    <ul class="pt-0">
+                                        <li>
+                                            <p class="text-white m-0" style="font-size: 12px;">Wijaya Kusuma Taman Duta Mas Blok D-8 No.15, Grogol Petamburan, Jakarta Barat, DKI Jakarta
+                                            </p>
+                                        </li>
+                                        <li style="font-size: 12px;"><a href="tel:+62 21 5760988" class="text-white mt-4 hover:text-theme-color"><i class="lni lni-phone"></i>&nbsp; 1500 038</a> &nbsp;
+                                            <br>
+                                        <a href="mailto:cs.support@uatas.id" class="text-white mt-4 hover:text-theme-color"><i class="lni lni-facebook-messenger"></i>&nbsp; cs.support@uatas.id</a></li>
+                                        <li style="font-size: 12px;"><a class="text-white mt-4 hover:text-theme-color"><i class="lni lni-alarm-clock"></i>&nbsp; Senin - Minggu&nbsp; 08.00 - 18.00 WIB</a></li>
+                                    </ul>
+                                </div>
+                            </div> 
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer_copyright pt-3 pb-6 border-t-2 border-solid border-white border-opacity-10 sm:flex justify-between">
+                <div class="footer_copyright_content pt-4 text-center">
+                    <p class="text-white">Copyright © 2020 Uatas. All rights reserved.</p>
+                </div>               
+            </div> 
+            <div id="additional-text" class="text-white pt-2" style="text-align: justify;"></div>
+        </div>
+    </footer>
+
+    <a href="https://cutt.ly/Pengaduan_UATAS" class="scroll-top">
+        <img src="../assets/images/logo/icon-pengaduan-2-removebg-preview.png" alt="Scroll to top">
+    </a>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-YFPQ99W5LS"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.3/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="../src/api/data.js"></script>
+    <script src="../assets/js/footer-info.js"></script>
+    <script src="../assets/js/product.js"></script>
+</body>
+</html>

@@ -42,9 +42,9 @@
 			<div class="page d-flex flex-row flex-column-fluid">
 				<div id="kt_aside" class="aside aside-dark aside-hoverable" data-kt-drawer="true" data-kt-drawer-name="aside" data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="{default:'200px', '300px': '250px'}" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_aside_mobile_toggle">
 					<div class="aside-logo flex-column-auto" id="kt_aside_logo">
-						<a href="../../demo1/dist/index.html">
+						<span>
 							<img alt="Logo" src="../static/assets/logo/logos1.png" class="h-45px logo" />
-						</a>
+						</span>
 						<div id="kt_aside_toggle" class="btn btn-icon w-auto px-0 btn-active-color-primary aside-toggle" data-kt-toggle="true" data-kt-toggle-state="active" data-kt-toggle-target="body" data-kt-toggle-name="aside-minimize">
 							<span class="svg-icon svg-icon-1 rotate-180">
 								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -229,6 +229,24 @@
                                                                     placeholder="Email" required />
                                                             </div>
                                                             <div class="fv-row mb-7">
+                                                                <label class="d-flex align-items-center fs-5 fw-bold mb-4">
+                                                                    <span class="required">Select Role</span>
+                                                                    <i class="fas fa-exclamation-circle ms-2 fs-7" data-bs-toggle="tooltip" title="Select Role"></i>
+                                                                </label>
+                                                                <div class="col-lg-8 fv-row">
+                                                                    <div class="d-flex align-items-center mt-3">
+                                                                        <label class="form-check form-check-inline form-check-solid me-5">
+                                                                            <input class="form-check-input" name="role" type="radio" value="staff" />
+                                                                            <span class="fw-bold ps-2 fs-6">Staff CS</span>
+                                                                        </label>
+                                                                        <label class="form-check form-check-inline form-check-solid">
+                                                                            <input class="form-check-input" name="role" type="radio" value="qc" />
+                                                                            <span class="fw-bold ps-2 fs-6">QC</span>
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="fv-row mb-7">
                                                                 <label
                                                                     class="required fw-bold fs-6 mb-2">Password</label>
                                                                 <input type="password" name="password"
@@ -257,6 +275,7 @@
                                                 <th class="min-w-125px">Nama Staff</th>
                                                 <th class="min-w-125px">Email</th>
                                                 <th class="min-w-125px">Nomor Hp</th>
+                                                <th class="min-w-125px">Role</th>
                                                 <th class="min-w-100px">Hapus</th>
                                             </tr>
                                         </thead>
@@ -276,6 +295,7 @@
                                                 </td>
                                                 <td>{{ u.email }}</td>
                                                 <td>{{ u.phone }}</td>
+                                                <td>{{ u.role }}</td>
                                                 <td>
                                                     <div class="d-flex flex-shrink-0">
                                                         <form action="{{ url_for('delete_user', user_id=u.id) }}"

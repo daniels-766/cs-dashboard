@@ -22,12 +22,11 @@ app.config['SECRET_KEY'] = 'b35dfe6ce150230940bd145823034486'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 150 * 1024 * 1024 
 
-ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'xls', 'xlsx'}
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename  
 
 db.init_app(app)
 migrate.init_app(app, db)
@@ -68,7 +67,6 @@ app.config.from_object(Config())
 
 scheduler = APScheduler()
 scheduler.init_app(app)
-# scheduler.start()
 
 @scheduler.task('cron', id='decrease_sla_daily', hour=0, minute=0, timezone=timezone('Asia/Jakarta') )
 def decrease_sla():
@@ -82,6 +80,10 @@ def decrease_sla():
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('404.html'), 404
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -118,7 +120,6 @@ def history():
     history_list = History.query.order_by(History.tanggal.desc()).paginate(page=page, per_page=10, error_out=False)
     return render_template('history.html', user=current_user, history_list=history_list)
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -134,6 +135,8 @@ def login():
             flash('Login berhasil!')
             if user.role == 'admin':
                 return redirect(url_for('admin_dashboard'))
+            elif user.role == 'qc':
+                return redirect(url_for('qc_dashboard'))
             else:
                 return redirect(url_for('staff_dashboard'))
         else:
@@ -155,8 +158,244 @@ def admin_dashboard():
         flash('Akses ditolak: Anda bukan admin.')
         return redirect(url_for('staff_dashboard'))
     
-    staff_users = User.query.filter_by(role='staff').all()
+    staff_users = User.query.filter(User.role != 'admin').all()
+    
     return render_template('admin_dashboard.html', user=current_user, users=staff_users)
+
+@app.route('/qc-dashboard')
+@login_required
+def qc_dashboard():
+    if current_user.role != 'qc':
+        flash('Akses ditolak: Anda bukan QC!!!')
+        return redirect(url_for('index'))
+
+    page = request.args.get('page', 1, type=int)
+    jenis = request.args.get('jenis')
+    status = request.args.get('status')
+    tanggal = request.args.get('tanggal')
+    q = request.args.get('q')
+
+    nomor_ticket_query = NomorTicket.query.filter(
+        NomorTicket.id_qc == current_user.id,
+        or_(
+            NomorTicket.status == None,
+            and_(
+                NomorTicket.status != 'close',
+                NomorTicket.status != 'reopen'
+            )
+        )
+    )
+
+    if q:
+        matching_ids_from_nama = db.session.query(Ticket.nomor_ticket_id)\
+            .filter(Ticket.nama_nasabah.ilike(f"%{q}%"))\
+            .distinct().all()
+        matching_ids_from_nama = [id[0] for id in matching_ids_from_nama]
+
+        matching_ids_from_nomor = db.session.query(NomorTicket.id)\
+            .filter(NomorTicket.nomor_ticket.ilike(f"%{q}%"))\
+            .all()
+        matching_ids_from_nomor = [id[0] for id in matching_ids_from_nomor]
+
+        all_matching_ids = list(set(matching_ids_from_nama + matching_ids_from_nomor))
+        nomor_ticket_query = nomor_ticket_query.filter(NomorTicket.id.in_(all_matching_ids))
+
+    tickets_grouped = []
+
+    for nt in nomor_ticket_query.all():
+        query = Ticket.query.options(joinedload(Ticket.nomor_ticket))\
+            .filter(Ticket.nomor_ticket_id == nt.id, Ticket.sla != 0)
+
+        if jenis:
+            query = query.filter_by(jenis_pengaduan=jenis)
+        if status:
+            query = query.filter_by(status_ticket=status)
+        if tanggal:
+            try:
+                tanggal_obj = datetime.strptime(tanggal, "%Y-%m-%d")
+                query = query.filter(func.date(Ticket.tanggal) == tanggal_obj.date())
+            except ValueError:
+                pass
+
+        first_ticket = query.order_by(Ticket.created_time.asc()).first()
+        if first_ticket:
+            tickets_grouped.append(first_ticket)
+
+    tickets_grouped.sort(
+        key=lambda x: x.created_time or datetime.min,
+        reverse=True
+    )
+
+    per_page = 10
+    total = len(tickets_grouped)
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_items = tickets_grouped[start:end]
+
+    class Pagination:
+        def __init__(self, items, page, per_page, total):
+            self.items = items
+            self.page = page
+            self.per_page = per_page
+            self.total = total
+            self.pages = (total + per_page - 1) // per_page
+            self.has_prev = page > 1
+            self.has_next = page < self.pages
+            self.prev_num = page - 1
+            self.next_num = page + 1
+
+    pagination = Pagination(paginated_items, page, per_page, total)
+
+    count_by_nomor_ticket = dict(
+        db.session.query(
+            Ticket.nomor_ticket_id,
+            func.count(Ticket.id)
+        ).group_by(Ticket.nomor_ticket_id).all()
+    )
+
+    jumlah_tiket_aktif = db.session.query(NomorTicket)\
+        .join(Ticket, Ticket.nomor_ticket_id == NomorTicket.id)\
+        .filter(NomorTicket.status == 'aktif', Ticket.sla != 0, NomorTicket.id_qc == current_user.id)\
+        .distinct()\
+        .count()
+
+    return render_template(
+        'qc_dashboard.html',
+        user=current_user,
+        tickets=pagination,
+        count_by_nomor_ticket=count_by_nomor_ticket,
+        jumlah_tiket_aktif=jumlah_tiket_aktif
+    )
+
+@app.route('/qc/nomor-ticket/<int:nomor_ticket_id>')
+@login_required
+def list_ticket_by_nomor_qc(nomor_ticket_id):
+    if current_user.role != 'qc':
+        return redirect(request.referrer)
+    
+    nomor_ticket = NomorTicket.query.filter_by(id=nomor_ticket_id, id_qc=current_user.id).first_or_404()
+
+    tickets = Ticket.query.filter_by(nomor_ticket_id=nomor_ticket_id)\
+        .order_by(Ticket.created_time.asc()).all()
+
+    jenis_pengaduan_map = {
+        1: "Informasi Pengajuan",
+        2: "Permintaan Kode OTP",
+        3: "Informasi Tenor",
+        4: "Informasi Tagihan",
+        5: "Informasi Denda",
+        6: "Pembatalan Pinjaman",
+        7: "Informasi Pencairan Dana",
+        8: "Perilaku Petugas Penagihan",
+        9: "Informasi Pembayaran",
+        10: "Discount / Pemutihan"
+    }
+
+    detail_pengaduan_map = {
+        1: [
+            "Hasil Pengajuan",
+            "Pengajuan Ditolak",
+            "Status Pengajuan sedang ditransfer",
+            "Tidak bisa pengajuan ulang karena keterlambatan",
+            "Verifikasi Bank gagal",
+            "Verifikasi KTP gagal",
+            "Cara pengajuan",
+            "Perubahan Nomor Handphone",
+            "Perubahan Nomor Rekening"
+        ],
+        2: [
+            "OTP Limit",
+            "Tidak terima SMS OTP"
+        ],
+        3: [
+            "Informasi Pinjaman"
+        ],
+        4: [
+            "Konsultasi detail pinjaman saat ini",
+            "Konsultasi Perpanjangan",
+            "Bukti Transfer"
+        ],
+        5: [
+            "Denda Keterlambatan"
+        ],
+        6: [
+            "Hapus Data (Penutupan Akun)",
+            "Pembatalan Pinjaman"
+        ],
+        7: [
+            "Pencairan dana berhasil",
+            "Status pencairan dana gagal",
+            "Status pengajuan pencairan dana ulang",
+            "Tidak terima dana",
+            "Operasi Gagal (tidak bisa verifikasi wajah dan KTP)"
+        ],
+        8: [
+            "Keluhan Penagihan",
+            "Keluhan Reminder",
+            "Penipuan"
+        ],
+        9: [
+            "Konfirmasi Pembayaran",
+            "Pembayaran belum masuk",
+            "Pembayaran bukan ke VA UATAS",
+            "Refund (pembayaran double)",
+            "Meminta VA (cicilan)",
+            "Meminta VA (pelunasan)",
+            "Meminta VA (perpanjangan)",
+            "Tidak bisa ambil VA"
+        ],
+        10: [
+            "Meminta keringanan pembayaran (cicilan)",
+            "Meminta keringanan pembayaran (potongan denda)",
+            "Tidak ada dana"
+        ]
+    }
+
+    qc_users = User.query.filter_by(role='qc').all()
+
+    return render_template(
+        'list_ticket_qc.html',
+        nomor_ticket=nomor_ticket,
+        tickets=tickets,
+        user=current_user,
+        jenis_pengaduan_map=jenis_pengaduan_map,
+        detail_pengaduan_map=detail_pengaduan_map,
+        qc_users=qc_users
+    )
+
+@app.route('/follow-up-pengaduan-qc/<int:nomor_ticket_id>', methods=['POST'])
+@login_required
+def follow_up_pengaduan_qc(nomor_ticket_id):
+    if current_user.role != 'qc':
+        return redirect(request.referrer)
+
+    deskripsi_qc = request.form.get("deskripsi_qc")  
+    uploaded_files = request.files.getlist("file_qc")  
+
+    existing = request.form.getlist("existing_images")
+    deleted = request.form.getlist("deleted_images")
+
+    new_filenames = []
+    for file in uploaded_files:
+        if file and file.filename:
+            filename = secure_filename(file.filename)
+            save_path = os.path.join("static/uploads", filename)
+            file.save(save_path)
+            new_filenames.append(filename)
+
+    final_files = [f for f in existing if f not in deleted] + new_filenames
+    joined_filenames = ",".join(final_files)
+
+    nomor_ticket = NomorTicket.query.get_or_404(nomor_ticket_id)
+    tickets = Ticket.query.filter_by(nomor_ticket_id=nomor_ticket.id).all()
+
+    for ticket in tickets:
+        ticket.deskripsi_qc = deskripsi_qc
+        ticket.file_qc = joined_filenames
+
+    db.session.commit()
+    flash("Data berhasil diupdate", "success")
+    return redirect(url_for("list_ticket_by_nomor_qc", nomor_ticket_id=nomor_ticket_id))
 
 @app.route('/list_user')
 @login_required
@@ -179,6 +418,7 @@ def add_user():
     email = request.form['email']
     phone = request.form['phone']
     password = request.form['password']
+    role = request.form.get('role') 
     hashed_pw = generate_password_hash(password)
 
     if User.query.filter_by(username=username).first():
@@ -188,11 +428,12 @@ def add_user():
         flash('Email sudah terdaftar.')
         return redirect(url_for('list_user'))
 
-    user = User(username=username, email=email, phone=phone, password=hashed_pw, role='staff')
+    user = User(username=username, email=email, phone=phone, password=hashed_pw, role=role)
     db.session.add(user)
     db.session.commit()
-    flash('User staff berhasil ditambahkan.')
-    return redirect(url_for('list_user'))
+
+    flash(f'User {role} berhasil ditambahkan.')
+    return redirect(url_for('admin_dashboard'))
 
 @app.route('/delete_user/<int:user_id>', methods=['POST'])
 @login_required
@@ -495,6 +736,9 @@ def staff_dashboard():
 @app.route('/pengaduan')
 @login_required
 def pengaduan():
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+
     page = request.args.get('page', 1, type=int)
     jenis = request.args.get('jenis')
     status = request.args.get('status')
@@ -502,13 +746,8 @@ def pengaduan():
     q = request.args.get('q')
 
     nomor_ticket_query = NomorTicket.query.filter(
-        or_(
-            NomorTicket.status == None,
-            and_(
-                NomorTicket.status != 'close',
-                NomorTicket.status != 'reopen'
-            )
-        )
+        NomorTicket.id_qc == None,
+        NomorTicket.status.in_(['aktif', 'reopen'])
     )
 
     if q:
@@ -580,7 +819,11 @@ def pengaduan():
 
     jumlah_tiket_aktif = db.session.query(NomorTicket)\
         .join(Ticket, Ticket.nomor_ticket_id == NomorTicket.id)\
-        .filter(NomorTicket.status == 'aktif', Ticket.sla != 0)\
+        .filter(
+            NomorTicket.status == 'aktif',
+            Ticket.sla != 0,
+            NomorTicket.id_qc == None
+        )\
         .distinct()\
         .count()
 
@@ -595,6 +838,9 @@ def pengaduan():
 @app.route('/export-ticket-excel')
 @login_required
 def export_ticket_excel():
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+
     date_range = request.args.get('date', '') 
 
     try:
@@ -681,6 +927,9 @@ def export_ticket_excel():
 @app.route('/nomor-ticket/<int:nomor_ticket_id>')
 @login_required
 def list_ticket_by_nomor(nomor_ticket_id):
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     nomor_ticket = NomorTicket.query.get_or_404(nomor_ticket_id)
 
     tickets = Ticket.query.filter_by(nomor_ticket_id=nomor_ticket_id)\
@@ -758,6 +1007,7 @@ def list_ticket_by_nomor(nomor_ticket_id):
             "Tidak ada dana"
         ]
     }
+    qc_users = User.query.filter_by(role='qc').all()
 
     return render_template(
         'list_ticket_by_nomor.html',
@@ -765,12 +1015,111 @@ def list_ticket_by_nomor(nomor_ticket_id):
         tickets=tickets,
         user=current_user,
         jenis_pengaduan_map=jenis_pengaduan_map,
-        detail_pengaduan_map=detail_pengaduan_map
+        detail_pengaduan_map=detail_pengaduan_map,
+        qc_users=qc_users
+    )
+
+@app.route('/eskalasi-ticket-qc/<int:nomor_ticket_id>')
+@login_required
+def eskalasi_ticket_qc(nomor_ticket_id):
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
+    nomor_ticket = NomorTicket.query.get_or_404(nomor_ticket_id)
+
+    tickets = Ticket.query.filter_by(nomor_ticket_id=nomor_ticket_id)\
+        .order_by(Ticket.created_time.asc()).all()
+
+    jenis_pengaduan_map = {
+        1: "Informasi Pengajuan",
+        2: "Permintaan Kode OTP",
+        3: "Informasi Tenor",
+        4: "Informasi Tagihan",
+        5: "Informasi Denda",
+        6: "Pembatalan Pinjaman",
+        7: "Informasi Pencairan Dana",
+        8: "Perilaku Petugas Penagihan",
+        9: "Informasi Pembayaran",
+        10: "Discount / Pemutihan"
+    }
+
+    detail_pengaduan_map = {
+        1: [
+            "Hasil Pengajuan",
+            "Pengajuan Ditolak",
+            "Status Pengajuan sedang ditransfer",
+            "Tidak bisa pengajuan ulang karena keterlambatan",
+            "Verifikasi Bank gagal",
+            "Verifikasi KTP gagal",
+            "Cara pengajuan",
+            "Perubahan Nomor Handphone",
+            "Perubahan Nomor Rekening"
+        ],
+        2: [
+            "OTP Limit",
+            "Tidak terima SMS OTP"
+        ],
+        3: [
+            "Informasi Pinjaman"
+        ],
+        4: [
+            "Konsultasi detail pinjaman saat ini",
+            "Konsultasi Perpanjangan",
+            "Bukti Transfer"
+        ],
+        5: [
+            "Denda Keterlambatan"
+        ],
+        6: [
+            "Hapus Data (Penutupan Akun)",
+            "Pembatalan Pinjaman"
+        ],
+        7: [
+            "Pencairan dana berhasil",
+            "Status pencairan dana gagal",
+            "Status pengajuan pencairan dana ulang",
+            "Tidak terima dana",
+            "Operasi Gagal (tidak bisa verifikasi wajah dan KTP)"
+        ],
+        8: [
+            "Keluhan Penagihan",
+            "Keluhan Reminder",
+            "Penipuan"
+        ],
+        9: [
+            "Konfirmasi Pembayaran",
+            "Pembayaran belum masuk",
+            "Pembayaran bukan ke VA UATAS",
+            "Refund (pembayaran double)",
+            "Meminta VA (cicilan)",
+            "Meminta VA (pelunasan)",
+            "Meminta VA (perpanjangan)",
+            "Tidak bisa ambil VA"
+        ],
+        10: [
+            "Meminta keringanan pembayaran (cicilan)",
+            "Meminta keringanan pembayaran (potongan denda)",
+            "Tidak ada dana"
+        ]
+    }
+    qc_users = User.query.filter_by(role='qc').all()
+
+    return render_template(
+        'hasil_eskalasi.html',
+        nomor_ticket=nomor_ticket,
+        tickets=tickets,
+        user=current_user,
+        jenis_pengaduan_map=jenis_pengaduan_map,
+        detail_pengaduan_map=detail_pengaduan_map,
+        qc_users=qc_users
     )
 
 @app.route('/follow-up-pengaduan/<int:nomor_ticket_id>', methods=['POST'])
 @login_required
 def follow_up_pengaduan(nomor_ticket_id):
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     jenis_pengaduan = request.form.get("jenis_pengaduan")
     detail_pengaduan = request.form.get("detail_pengaduan")
     kronologis = request.form.get("kronologis")
@@ -806,6 +1155,9 @@ def follow_up_pengaduan(nomor_ticket_id):
 @app.route('/follow-up-pengaduan-reopen/<int:nomor_ticket_id>', methods=['POST'])
 @login_required
 def follow_up_pengaduan_reopen(nomor_ticket_id):
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     jenis_pengaduan = request.form.get("jenis_pengaduan")
     detail_pengaduan = request.form.get("detail_pengaduan")
     kronologis = request.form.get("kronologis")
@@ -841,6 +1193,9 @@ def follow_up_pengaduan_reopen(nomor_ticket_id):
 @app.route('/add-order/<int:ticket_id>', methods=['POST'])
 @login_required
 def add_order(ticket_id):
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     original_ticket = Ticket.query.get_or_404(ticket_id)
 
     order_no = request.form.get('order_no')
@@ -895,6 +1250,9 @@ def add_order(ticket_id):
 @app.route('/add-order-reopen/<int:ticket_id>', methods=['POST'])
 @login_required
 def add_order_reopen(ticket_id):
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     original_ticket = Ticket.query.get_or_404(ticket_id)
 
     order_no = request.form.get('order_no')
@@ -949,6 +1307,9 @@ def add_order_reopen(ticket_id):
 @app.route('/add-kontak/<int:ticket_id>', methods=['POST'])
 @login_required
 def add_kontak(ticket_id):
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     ticket = Ticket.query.get_or_404(ticket_id)
 
     nama_lengkap = request.form.get('nama_lengkap')
@@ -979,6 +1340,9 @@ def add_kontak(ticket_id):
 @app.route('/submit-ticket', methods=['POST'])
 @login_required
 def submit_ticket():
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     try:
         nomor_ticket_value = request.form.get('nomor_ticket')
 
@@ -1024,6 +1388,11 @@ def submit_ticket():
 @app.route('/update-tahapan/<int:nomor_ticket_id>/<int:ticket_id>', methods=['POST'])
 @login_required
 def update_tahapan(nomor_ticket_id, ticket_id):
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
+    id_qc = request.form.get('id_qc')
+    
     tiket = Ticket.query.get_or_404(ticket_id)
 
     tahapan = request.form.get('tahapan')
@@ -1051,9 +1420,12 @@ def update_tahapan(nomor_ticket_id, ticket_id):
     is_updating_tahapan = bool(status_ticket or tahapan or tahapan_2)
 
     if is_updating_tahapan:
-        tiket.tahapan = tahapan  # boleh kosong / None
+        tiket.tahapan = tahapan 
         tiket.status_ticket = status_ticket
         tiket.tahapan_2 = tahapan_2
+
+        if tahapan == "Eskalasi ke QC" and id_qc:
+            tiket.nomor_ticket.id_qc = int(id_qc)
 
         new_history = History(
             nomor_ticket=tiket.nomor_ticket.nomor_ticket,
@@ -1065,7 +1437,6 @@ def update_tahapan(nomor_ticket_id, ticket_id):
         )
         db.session.add(new_history)
 
-    # Update field lainnya
     tiket.nama_os = nama_os
     tiket.nama_bucket = nama_bucket
     tiket.nama_dc = nama_dc
@@ -1085,6 +1456,9 @@ def update_tahapan(nomor_ticket_id, ticket_id):
 @app.route('/update-catatan/<int:ticket_id>', methods=['POST'])
 @login_required
 def update_catatan(ticket_id):
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     tiket = Ticket.query.get_or_404(ticket_id)
     
     catatan = request.form.get('catatan')
@@ -1102,6 +1476,9 @@ def update_catatan(ticket_id):
 @app.route('/mark-case-valid/<int:ticket_id>', methods=['POST'])
 @login_required
 def mark_case_valid(ticket_id):
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     tiket = Ticket.query.get_or_404(ticket_id)
     tiket.status_case = 'valid'
     db.session.commit()
@@ -1111,6 +1488,9 @@ def mark_case_valid(ticket_id):
 @app.route('/update-tahapan-reopen/<int:nomor_ticket_id>/<int:ticket_id>', methods=['POST'])
 @login_required
 def update_tahapan_reopen(nomor_ticket_id, ticket_id):
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     tiket = Ticket.query.get_or_404(ticket_id)
 
     tahapan = request.form.get('tahapan')
@@ -1150,6 +1530,9 @@ def update_tahapan_reopen(nomor_ticket_id, ticket_id):
 @app.route('/close-nomor-ticket/<int:nomor_ticket_id>', methods=['POST'])
 @login_required
 def close_nomor_ticket(nomor_ticket_id):
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     nomor_ticket = NomorTicket.query.get_or_404(nomor_ticket_id)
     
     nomor_ticket.status = 'close'
@@ -1165,6 +1548,9 @@ def close_nomor_ticket(nomor_ticket_id):
 @app.route('/reopen-nomor-ticket/<int:nomor_ticket_id>', methods=['POST'])
 @login_required
 def reopen_nomor_ticket(nomor_ticket_id):
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     nomor_ticket = NomorTicket.query.get_or_404(nomor_ticket_id)
     
     nomor_ticket.status = 'reopen'
@@ -1181,6 +1567,9 @@ def reopen_nomor_ticket(nomor_ticket_id):
 @app.route('/ticket-close')
 @login_required
 def close_ticket():
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     page = request.args.get('page', 1, type=int)
     jenis = request.args.get('jenis')
     status = request.args.get('status')
@@ -1254,6 +1643,9 @@ def close_ticket():
 @app.route('/closed-ticket/<int:nomor_ticket_id>')
 @login_required
 def list_closed_ticket(nomor_ticket_id):
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     nomor_ticket = NomorTicket.query.get_or_404(nomor_ticket_id)
 
     tickets = Ticket.query.filter_by(nomor_ticket_id=nomor_ticket_id)\
@@ -1344,6 +1736,9 @@ def list_closed_ticket(nomor_ticket_id):
 @app.route('/reopen-ticket/<int:nomor_ticket_id>')
 @login_required
 def list_reopen_ticket(nomor_ticket_id):
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     nomor_ticket = NomorTicket.query.get_or_404(nomor_ticket_id)
 
     tickets = Ticket.query.filter_by(nomor_ticket_id=nomor_ticket_id)\
@@ -1434,6 +1829,9 @@ def list_reopen_ticket(nomor_ticket_id):
 @app.route('/reopen-ticket')
 @login_required
 def reopen_ticket():
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     page = request.args.get('page', 1, type=int)
     jenis = request.args.get('jenis')
     status = request.args.get('status')
@@ -1506,6 +1904,9 @@ def reopen_ticket():
 
 @app.route('/download-template')
 def download_template():
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     return send_from_directory(directory='static/files', path='template_cs.xlsx', as_attachment=True)
 
 import re
@@ -1517,6 +1918,9 @@ def clean_alpha_only(val):
 @app.route('/upload', methods=['POST'])
 @login_required
 def upload_excel():
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     def safe_val(val):
         return None if pd.isna(val) else str(val).strip()
 
@@ -1608,6 +2012,9 @@ def upload_excel():
 @app.route("/case-valid")
 @login_required
 def case_valid():
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     page = request.args.get('page', 1, type=int)
     jenis = request.args.get('jenis')
     status = request.args.get('status')
@@ -1641,6 +2048,9 @@ def case_valid():
 @app.route('/upload-document/<int:ticket_id>', methods=['POST'])
 @login_required
 def upload_document(ticket_id):
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     ticket = Ticket.query.get_or_404(ticket_id)
     files = request.files.getlist('documents')
     uploaded_files = []
@@ -1673,6 +2083,9 @@ def upload_document(ticket_id):
 @app.route('/hapus-dokumen/<int:ticket_id>', methods=['POST'])
 @login_required
 def hapus_dokumen(ticket_id):
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     filename = request.form.get('filename')
     ticket = Ticket.query.get_or_404(ticket_id)
 
@@ -1695,6 +2108,9 @@ def hapus_dokumen(ticket_id):
 @app.route('/sla')
 @login_required
 def sla():
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+    
     page = request.args.get('page', 1, type=int)
     jenis = request.args.get('jenis')
     status = request.args.get('status')
@@ -1788,6 +2204,140 @@ def sla():
 
     return render_template(
         'sla.html',
+        user=current_user,
+        tickets=pagination,
+        count_by_nomor_ticket=count_by_nomor_ticket,
+        jumlah_tiket_aktif=jumlah_tiket_aktif
+    )
+
+@app.route('/add-detail-qc/<int:ticket_id>', methods=['POST'])
+@login_required
+def add_detail_qc(ticket_id):
+    if current_user.role != 'qc':
+        return redirect(request.referrer)
+
+    tiket = Ticket.query.get_or_404(ticket_id)
+
+    deskripsi_qc = request.form.get('deskripsi_qc')
+
+    uploaded_files = request.files.getlist('file_qc')
+    existing_files = request.form.getlist('existing_images') 
+
+    filenames = existing_files.copy()
+
+    for file in uploaded_files:
+        if file and file.filename:
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.root_path, 'static/uploads', filename)
+            file.save(filepath)
+            filenames.append(filename)
+
+    tiket.deskripsi_qc = deskripsi_qc
+    tiket.file_qc = ','.join(filenames) if filenames else None
+
+    db.session.commit()
+    flash('Detail QC berhasil disimpan.', 'success')
+    return redirect(request.referrer)
+
+@app.route('/eskalasi-qc')
+@login_required
+def eskalasi_qc():
+    if current_user.role != 'staff':
+        return redirect(request.referrer)
+
+    page = request.args.get('page', 1, type=int)
+    jenis = request.args.get('jenis')
+    status = request.args.get('status')
+    tanggal = request.args.get('tanggal')
+    q = request.args.get('q')
+
+    nomor_ticket_query = NomorTicket.query.filter(
+        NomorTicket.id_qc.isnot(None), 
+        or_(
+            NomorTicket.status == None,
+            and_(
+                NomorTicket.status != 'close',
+                NomorTicket.status != 'reopen'
+            )
+        )
+    )
+
+    if q:
+        matching_ids_from_nama = db.session.query(Ticket.nomor_ticket_id)\
+            .filter(Ticket.nama_nasabah.ilike(f"%{q}%"))\
+            .distinct().all()
+        matching_ids_from_nama = [id[0] for id in matching_ids_from_nama]
+
+        matching_ids_from_nomor = db.session.query(NomorTicket.id)\
+            .filter(NomorTicket.nomor_ticket.ilike(f"%{q}%"))\
+            .all()
+        matching_ids_from_nomor = [id[0] for id in matching_ids_from_nomor]
+
+        all_matching_ids = list(set(matching_ids_from_nama + matching_ids_from_nomor))
+
+        nomor_ticket_query = nomor_ticket_query.filter(NomorTicket.id.in_(all_matching_ids))
+
+    tickets_grouped = []
+
+    for nt in nomor_ticket_query.all():
+        query = Ticket.query.options(joinedload(Ticket.nomor_ticket))\
+            .filter(Ticket.nomor_ticket_id == nt.id, Ticket.sla != 0)
+
+        if jenis:
+            query = query.filter_by(jenis_pengaduan=jenis)
+        if status:
+            query = query.filter_by(status_ticket=status)
+        if tanggal:
+            try:
+                tanggal_obj = datetime.strptime(tanggal, "%Y-%m-%d")
+                query = query.filter(func.date(Ticket.tanggal) == tanggal_obj.date())
+            except ValueError:
+                pass
+
+        first_ticket = query.order_by(Ticket.created_time.asc()).first()
+        if first_ticket:
+            tickets_grouped.append(first_ticket)
+
+    tickets_grouped.sort(
+        key=lambda x: x.created_time or datetime.min,
+        reverse=True
+    )
+
+    per_page = 10
+    total = len(tickets_grouped)
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_items = tickets_grouped[start:end]
+
+    class Pagination:
+        def __init__(self, items, page, per_page, total):
+            self.items = items
+            self.page = page
+            self.per_page = per_page
+            self.total = total
+            self.pages = (total + per_page - 1) // per_page
+            self.has_prev = page > 1
+            self.has_next = page < self.pages
+            self.prev_num = page - 1
+            self.next_num = page + 1
+
+    pagination = Pagination(paginated_items, page, per_page, total)
+
+    count_by_nomor_ticket = dict(
+        db.session.query(
+            Ticket.nomor_ticket_id,
+            func.count(Ticket.id)
+        ).group_by(Ticket.nomor_ticket_id).all()
+    )
+
+    jumlah_tiket_aktif = db.session.query(NomorTicket)\
+        .join(Ticket, Ticket.nomor_ticket_id == NomorTicket.id)\
+        .filter(NomorTicket.status == 'aktif', Ticket.sla != 0, NomorTicket.id_qc.isnot(None))\
+        .distinct()\
+        .count()
+
+    return render_template(
+        'eskalasi.html',
         user=current_user,
         tickets=pagination,
         count_by_nomor_ticket=count_by_nomor_ticket,

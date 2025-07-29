@@ -202,6 +202,21 @@
 								</a>
 							</div>
 							<div class="menu-item">
+								<a class="menu-link" href="{{ url_for('eskalasi_qc') }}">
+									<span class="menu-icon">
+										<span class="svg-icon svg-icon-2">
+											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+												viewBox="0 0 24 24" fill="none">
+												<path opacity="0.3" d="M10 4H21C21.6 4 22 4.4 22 5V7H10V4Z" fill="currentColor"/>
+												<path opacity="0.3" d="M13 14.4V9C13 8.4 12.6 8 12 8C11.4 8 11 8.4 11 9V14.4H13Z" fill="currentColor"/>
+												<path d="M10.4 3.60001L12 6H21C21.6 6 22 6.4 22 7V19C22 19.6 21.6 20 21 20H3C2.4 20 2 19.6 2 19V4C2 3.4 2.4 3 3 3H9.20001C9.70001 3 10.2 3.20001 10.4 3.60001ZM13 14.4V9C13 8.4 12.6 8 12 8C11.4 8 11 8.4 11 9V14.4H8L11.3 17.7C11.7 18.1 12.3 18.1 12.7 17.7L16 14.4H13Z" fill="currentColor"/>
+											</svg>
+										</span>
+									</span>
+									<span class="menu-title">Eskalasi QC</span>
+								</a>
+							</div>
+							<div class="menu-item">
 								<a class="menu-link" href="{{ url_for('history') }}">
 									<span class="menu-icon">
 										<span class="svg-icon svg-icon-2">
@@ -305,6 +320,14 @@
                                         <div class="menu-item me-lg-1">
                                             <a class="menu-link py-3" href="{{ url_for('sla') }}">
                                                 <span class="menu-title">SLA</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="menu menu-lg-rounded menu-column menu-lg-row menu-state-bg menu-title-gray-700 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-400 fw-bold my-5 my-lg-0 align-items-stretch"
+                                        id="#kt_header_menu" data-kt-menu="true">
+                                        <div class="menu-item me-lg-1">
+                                            <a class="menu-link py-3" href="{{ url_for('eskalasi_qc') }}">
+                                                <span class="menu-title">Eskalasi</span>
                                             </a>
                                         </div>
                                     </div>
@@ -522,7 +545,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="card-body p-9">
-                                                    <form method="POST" action="{{ url_for('update_tahapan', nomor_ticket_id=nomor_ticket.id, ticket_id=ticket.id) }}">
+                                                    <form method="POST" action="{{ url_for('update_tahapan', nomor_ticket_id=nomor_ticket.id, ticket_id=ticket.id) }}"data-ticket-id="{{ ticket.id }}">
                                                         <div class="row">
                                                             <div class="col-md-6">
                                                             </div>
@@ -707,9 +730,28 @@
                                                                             </option>
                                                                         </select>
                                                                     </div>
-                                                                    <div class="col-lg-2">
+                                                                </div>
+                                                                <div class="row mb-7 d-none" id="qc_user_dropdown_{{ ticket.id }}">
+                                                                    <label class="col-lg-5 fw-bold text-muted">Pilih QC</label>
+                                                                    <div class="col-lg-5 fv-row">
+                                                                        <select name="id_qc" class="form-select form-select-solid form-select-lg">
+                                                                        <option value="">Pilih QC</option>
+                                                                        {% for qc in qc_users %}
+                                                                        <option value="{{ qc.id }}"
+                                                                            {% if ticket.nomor_ticket and ticket.nomor_ticket.id_qc == qc.id %}selected{% endif %}>
+                                                                            {{ qc.username }}
+                                                                        </option>
+                                                                        {% endfor %}
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row">
+                                                                    <div class="col-md-6">
+                                                                    </div>
+                                                                    <div class="col-md-6 text-end">
                                                                         <button type="submit"
-                                                                            class="btn btn-primary">Simpan</button>
+                                                                            class="btn btn-primary">Simpan
+                                                                        </button>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -1131,6 +1173,25 @@
             document.querySelector("form").appendChild(input);
         }
     </script>
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('select[name="tahapan"]').forEach(function (dropdown) {
+    const ticketId = dropdown.closest('form').dataset.ticketId;
+    const qcDropdown = document.getElementById('qc_user_dropdown_' + ticketId);
+
+    function toggleQcField() {
+      if (dropdown.value === 'Eskalasi ke QC') {
+        qcDropdown.classList.remove('d-none');
+      } else {
+        qcDropdown.classList.add('d-none');
+      }
+    }
+
+    dropdown.addEventListener('change', toggleQcField);
+    toggleQcField(); // initialize on load
+  });
+});
+</script>
 
 </body>
 
