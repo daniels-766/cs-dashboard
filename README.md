@@ -34,9 +34,9 @@ Sistem **Dashboard CS** adalah aplikasi web internal untuk membantu tim Customer
 
 Butuh bantuan? Hubungi kami:
 
-- 🌐 Website: [https://uatas.id](https://uatas.id)
-- 📧 Email: support@uatas.id
-- 📞 Call Center: 1500 038 UATAS-ID
+- 🌐 Website
+- 📧 Email
+- 📞 Call Center
 
 ---
 
@@ -47,7 +47,7 @@ Repositori ini dilindungi oleh [MIT License](LICENSE)
 ---
 
 <div align="center">
-  Dibangun oleh Tim <a href="https://uatas.id">UATAS</a> · Terdaftar dan diawasi oleh OJK
+  Dibangun oleh Tim UATAS</a> · Terdaftar dan diawasi oleh OJK
 </div>
 
 <div align="center">
