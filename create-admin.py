@@ -3,10 +3,10 @@ from models import User
 from werkzeug.security import generate_password_hash
 from app import app
 
-username = "daniel"
-email = "uatas"
-phone = "081362109160"
-password = "popopo123"
+username = "admin"
+email = "admin@gmail.com"
+phone = "081234567890"
+password = "admin123"
 
 with app.app_context():
     if User.query.filter((User.username == username) | (User.email == email)).first():
