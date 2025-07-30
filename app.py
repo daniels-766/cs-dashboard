@@ -1029,6 +1029,15 @@ def eskalasi_ticket_qc(nomor_ticket_id):
 
     tickets = Ticket.query.filter_by(nomor_ticket_id=nomor_ticket_id)\
         .order_by(Ticket.created_time.asc()).all()
+    
+    semua_kosong = all(ticket.deskripsi_qc in [None, ""] for ticket in tickets)
+
+    if semua_kosong:
+        status_feedback = "Belum ada Feedback"
+        badge_feedback = "warning"
+    else:
+        status_feedback = "Ada Feedback"
+        badge_feedback = "success"
 
     jenis_pengaduan_map = {
         1: "Informasi Pengajuan",
@@ -1397,8 +1406,8 @@ def update_tahapan(nomor_ticket_id, ticket_id):
 
     tahapan = request.form.get('tahapan')
     status_ticket = request.form.get('status_ticket')
-    nama_os = request.form.get('nama_os')
-    nama_bucket = request.form.get('nama_bucket')
+    nama_os = request.form.get('nama_os').strip() if request.form.get('nama_os') else None
+    nama_bucket = request.form.get('nama_bucket').strip() if request.form.get('nama_bucket') else None
     nama_dc = request.form.get('nama_dc')
     nama_nasabah = request.form.get('nama_nasabah')
     nik = request.form.get('nik')
@@ -1989,9 +1998,9 @@ def upload_excel():
                 jenis_pengaduan=jenis_pengaduan_val,
                 detail_pengaduan=safe_val(row['detail_pengaduan']),
                 order_no=order_no,
-                nama_os=clean_alpha_only(safe_val(row['os']).replace(" ", "")) if safe_val(row['os']) else None,
+                nama_os=clean_alpha_only(safe_val(row['os']).replace(" ", "")) if safe_val(row['os']) and pd.notna(row['os']) else None,
                 nama_dc=safe_val(row['dc']),
-                nama_bucket=safe_val(row['bucket']).replace(" ", "") if safe_val(row['bucket']) else None,
+                nama_bucket=safe_val(row['bucket']).replace(" ", "") if safe_val(row['bucket']) and pd.notna(row['bucket']) else None,
                 input_by=current_user.id,
                 sla=10,
                 status_ticket='1',
@@ -2296,6 +2305,17 @@ def eskalasi_qc():
 
         first_ticket = query.order_by(Ticket.created_time.asc()).first()
         if first_ticket:
+            ada_feedback_qc = db.session.query(Ticket.id).filter(
+                Ticket.nomor_ticket_id == nt.id,
+                or_(
+                    Ticket.deskripsi_qc.isnot(None),
+                    Ticket.file_qc.isnot(None)
+                )
+            ).first() is not None
+
+            first_ticket.feedback_qc_status = "Check Feedback QC" if ada_feedback_qc else "Belum ada Feedback QC"
+            first_ticket.feedback_qc_badge = "success" if ada_feedback_qc else "warning"
+
             tickets_grouped.append(first_ticket)
 
     tickets_grouped.sort(

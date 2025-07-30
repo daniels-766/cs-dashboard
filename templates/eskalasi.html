@@ -585,18 +585,6 @@
                                                             </select>
                                                         </div>
                                                         <div class="mb-10">
-                                                            <label class="form-label fs-5 fw-bold mb-3">Status:</label>
-                                                            <select class="form-select form-select-solid fw-bolder"
-                                                                data-kt-select2="true" data-placeholder="Select option"
-                                                                name="status">
-                                                                <option></option>
-                                                                <option value="1">Aktif</option>
-                                                                <option value="2">Perpanjangan</option>
-                                                                <option value="3">Keberatan</option>
-                                                                <option value="4">Tutup</option>
-                                                            </select>
-                                                        </div>
-                                                        <div class="mb-10">
                                                             <label class="form-label fs-5 fw-bold mb-3">Tanggal:</label>
                                                             <input type="date" name="tanggal"
                                                                 class="form-control form-control-solid"
@@ -629,7 +617,7 @@
                                                 <th class="min-w-125px">Kategori Pengaduan</th>
                                                 <th class="min-w-50px">OS</th>
                                                 <th class="min-w-50px">Bucket</th>
-                                                <th class="text-center">Status</th>
+                                                <th class="text-center">Status Eskalasi QC</th>
                                             </tr>
                                         </thead>
                                         <tbody class="fw-bold text-gray-600">
@@ -683,7 +671,7 @@
                                                     count_by_nomor_ticket else '1' }}
                                                 </td> -->
                                                 <!-- <td>{{ status_map[ticket.status_ticket] if ticket.status_ticket in status_map else '-' }}</td> -->
-                                                <td class="text-center">
+                                                <!-- <td class="text-center">
                                                     <span class="badge d-inline-block px-3 py-2 
                                                     {% if ticket.status_ticket == '1' %} badge-success
                                                     {% elif ticket.status_ticket == '3' %} badge-warning
@@ -693,6 +681,11 @@
                                                     {% else %} badge-light {% endif %}" style="width: 100px;">
                                                         {{ status_map[ticket.status_ticket|string] if
                                                         ticket.status_ticket|string in status_map else '-' }}
+                                                    </span>
+                                                </td> -->
+                                                <td class="text-center">
+                                                    <span class="badge badge-{{ ticket.feedback_qc_badge }} d-inline-block px-3 py-2" style="width: 140px;">
+                                                        {{ ticket.feedback_qc_status }}
                                                     </span>
                                                 </td>
                                             </tr>
