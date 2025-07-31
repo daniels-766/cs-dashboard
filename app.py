@@ -6,7 +6,7 @@ from extensions import db, migrate, login_manager
 from datetime import datetime
 from models import Ticket, NomorTicket, User, Kontak, History, db
 from sqlalchemy.orm import joinedload, aliased
-from sqlalchemy import func, or_, and_, asc, func
+from sqlalchemy import func, or_, and_, asc, distinct
 from werkzeug.utils import secure_filename
 import pandas as pd
 from io import BytesIO
@@ -76,6 +76,26 @@ def decrease_sla():
             ticket.sla -= 1
         db.session.commit()
         print(f"SLA updated at {datetime.now(timezone('Asia/Jakarta'))} — {len(tickets)} ticket(s) updated.")
+
+def update_ticket_fields():
+    with app.app_context():
+        tickets = Ticket.query.filter(
+            (Ticket.nama_os.in_([None, "-", "None"])) |
+            (Ticket.nama_bucket.in_([None, "-", "None"]))
+        ).all()
+
+        for ticket in tickets:
+            if ticket.nama_os in [None, "-", "None"]:
+                ticket.nama_os = ""  
+            if ticket.nama_bucket in [None, "-", "None"]:
+                ticket.nama_bucket = ""
+
+        db.session.commit()
+        print(f"Updated {len(tickets)} ticket(s).")
+
+scheduler.add_job(id='Update None Fields', func=update_ticket_fields, trigger='interval', minutes=1)
+
+scheduler.start()
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -716,6 +736,31 @@ def staff_dashboard():
     )).distinct(NomorTicket.id).count()
     total_close = query.filter(NomorTicket.status == 'close').distinct(NomorTicket.id).count()
 
+    # Tambahan: Chart jumlah NomorTicket berdasarkan jenis_pengaduan
+    jenis_pengaduan_chart_query = db.session.query(
+        Ticket.jenis_pengaduan,
+        func.count(distinct(Ticket.nomor_ticket_id))
+    ).join(NomorTicket, Ticket.nomor_ticket_id == NomorTicket.id).filter(
+        Ticket.jenis_pengaduan.in_(range(1, 11))  
+    )
+
+    if start_date and end_date:
+        jenis_pengaduan_chart_query = jenis_pengaduan_chart_query.filter(
+            Ticket.tanggal.between(start_date, end_date)
+        )
+
+    jenis_pengaduan_chart_query = jenis_pengaduan_chart_query.group_by(Ticket.jenis_pengaduan)
+    jenis_pengaduan_chart_data = jenis_pengaduan_chart_query.all()
+
+    jenis_pengaduan_chart_labels = [item[0] for item in jenis_pengaduan_chart_data]
+
+    jenis_pengaduan_chart_values = [item[1] for item in jenis_pengaduan_chart_data]
+
+    jenis_pengaduan_chart_series = [{
+        "name": "Jumlah NomorTicket",
+        "data": jenis_pengaduan_chart_values
+    }]
+
     return render_template(
         'staff_dashboard.html',
         user=current_user,
@@ -730,7 +775,10 @@ def staff_dashboard():
         all_bucket=all_bucket,
         chart_labels=chart_labels,
         chart_series=chart_series,
-        chart_title=chart_title
+        chart_title=chart_title,
+        jenis_pengaduan_chart_labels=jenis_pengaduan_chart_labels,
+        jenis_pengaduan_chart_series=jenis_pengaduan_chart_series,
+        ticket_chart_title="Jumlah Ticket per Status"
     )
 
 @app.route('/pengaduan')

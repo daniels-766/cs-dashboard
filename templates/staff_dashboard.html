@@ -670,6 +670,27 @@
 															</div>
 														</div>
 													</div>
+													<!-- <div class="pt-2">
+														<div class="d-flex align-items-center pb-6 px-9">
+															<h3 class="m-0 text-gray-900 flex-grow-1">Ticket Chart</h3>
+														</div>
+														<div class="tab-content px-3">
+															<div class="tab-pane fade active show" role="tabpanel">
+																<div id="kt_security_summary_chart_ticket"
+																	style="height: 300px"></div>
+															</div>
+														</div>
+													</div> -->
+													<div class="pt-2">
+														<div class="d-flex align-items-center pb-6 px-9">
+															<h3 class="m-0 text-gray-900 flex-grow-1">Jumlah NomorTicket per Jenis Pengaduan</h3>
+														</div>
+														<div class="tab-content px-3">
+															<div class="tab-pane fade active show" role="tabpanel">
+																<div id="kt_security_summary_chart_ticket_jenis_pengaduan" style="height: 300px"></div>
+															</div>
+														</div>
+													</div>
 												</div>
 											</div>
 										</div>
@@ -814,6 +835,160 @@
 		chart.render();
     });
 	</script>
+	<script>
+document.addEventListener("DOMContentLoaded", function () {
+	var ticketChartData = {
+		series: {{ ticket_chart_series | default([]) | tojson | safe }},
+		labels: {{ ticket_chart_labels | default([]) | tojson | safe }},
+		title: "{{ ticket_chart_title or 'Ticket Chart' }}"
+	};
+
+	var isSingleSeriesTicket = ticketChartData.series.length === 1;
+
+	var optionsTicket = {
+		series: ticketChartData.series,
+		chart: {
+			type: 'bar',
+			height: 350
+		},
+		plotOptions: {
+			bar: {
+				horizontal: false,
+				columnWidth: '40%',
+				distributed: isSingleSeriesTicket,
+				dataLabels: {
+					position: 'top'
+				}
+			}
+		},
+		dataLabels: {
+			enabled: true,
+			offsetY: -10,
+			style: {
+				fontSize: '12px',
+				colors: ['#000']
+			}
+		},
+		xaxis: {
+			categories: ticketChartData.labels,
+			title: {
+				text: ticketChartData.title
+			},
+			labels: {
+				rotate: -45
+			}
+		},
+		yaxis: {
+			title: {
+				text: 'Jumlah Ticket'
+			}
+		},
+		legend: {
+			position: 'top',
+			horizontalAlign: 'center'
+		},
+		tooltip: {
+			y: {
+				formatter: function (val) {
+					return val + " ticket";
+				}
+			}
+		},
+		colors: [
+			'#1E90FF', '#28a745', '#ffc107', '#dc3545', '#6f42c1'
+		]
+	};
+
+	var ticketChart = new ApexCharts(document.querySelector("#kt_security_summary_chart_ticket"), optionsTicket);
+	ticketChart.render();
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    var jenisPengaduanChart = {
+        series: {{ jenis_pengaduan_chart_series | tojson | safe }},
+        rawLabels: {{ jenis_pengaduan_chart_labels | tojson | safe }},
+        title: "Jumlah NomorTicket per Jenis Pengaduan"
+    };
+
+	var labelMapping = {
+		"1": "Informasi Pengajuan",
+		"2": "Permintaan Kode OTP",
+		"3": "Informasi Tenor",
+		"4": "Informasi Tagihan",
+		"5": "Informasi Denda",
+		"6": "Pembatalan Pinjaman",
+		"7": "Informasi Pencairan Dana",
+		"8": "Perilaku Petugas Penagihan",
+		"9": "Informasi Pembayaran",
+		"10": "Discount / Pemutihan"
+	};
+
+	var mappedLabels = jenisPengaduanChart.rawLabels.map(function(val) {
+		return labelMapping[val] || val;
+	});
+
+
+    var optionsJenisPengaduan = {
+        series: jenisPengaduanChart.series,
+        chart: {
+            type: 'bar',
+            height: 350
+        },
+        plotOptions: {
+            bar: {
+                horizontal: false,
+                columnWidth: '40%',
+                distributed: true
+            }
+        },
+        dataLabels: {
+            enabled: true,
+            offsetY: -10,
+            style: {
+                fontSize: '12px',
+                colors: ['#000']
+            }
+        },
+        xaxis: {
+            categories: mappedLabels,
+            title: {
+                text: jenisPengaduanChart.title
+            },
+            labels: {
+                rotate: -45,
+				style: {
+					fontSize: '8px'
+				}
+            }
+        },
+        yaxis: {
+            title: {
+                text: 'Jumlah NomorTicket'
+            }
+        },
+        legend: {
+            position: 'top',
+            horizontalAlign: 'center',
+        },
+        tooltip: {
+            y: {
+                formatter: function (val) {
+                    return val + " tiket";
+                }
+            }
+        },
+        colors: [
+            '#1E90FF', '#28a745', '#ffc107', '#dc3545', '#6f42c1',
+            '#20c997', '#fd7e14', '#6610f2', '#17a2b8', '#343a40'
+        ]
+    };
+
+    var chartJenis = new ApexCharts(document.querySelector("#kt_security_summary_chart_ticket_jenis_pengaduan"), optionsJenisPengaduan);
+    chartJenis.render();
+});
+</script>
+
 </body>
 
 </html>

@@ -449,21 +449,22 @@
                                                 class="table table-flush align-middle table-row-bordered table-row-solid gy-4 gs-9">
                                                 <thead class="border-gray-200 fs-5 fw-bold bg-lighten">
                                                     <tr>
-                                                        <th class="min-w-100px ps-9">Nomor Ticket</th>
-                                                        <th class="min-w-150px px-0">Tanggal</th>
-                                                        <th class="min-w-100px">Order Number</th>
-                                                        <th class="min-w-75px">Status Ticket</th>
+                                                        <th class="min-w-100px ps-9 text-center">Nomor Ticket</th>
+                                                        <th class="min-w-150px px-0 text-center">Tanggal</th>
+                                                        <th class="min-w-100px text-center">Order Number</th>
+                                                        <th class="min-w-75px text-center">Status Ticket</th>
                                                         <th class="min-w-100px text-center">Tahapan</th>
+                                                        <th class="min-w-75px text-center">User</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="fs-6 fw-bold text-gray-600">
                                                     {% if history_list.items %}
                                                     {% for h in history_list.items %}
                                                     <tr>
-                                                        <td class="ps-9">{{ h.nomor_ticket }}</td>
-                                                        <td class="ps-0">{{ h.tanggal.strftime('%d %b %Y %H:%M') }}</td>
-                                                        <td>{{ h.order_number or '-' }}</td>
-                                                        <td>
+                                                        <td class="ps-9 text-center">{{ h.nomor_ticket }}</td>
+                                                        <td class="ps-0 text-center">{{ h.tanggal.strftime('%d %b %Y %H:%M') }}</td>
+                                                        <td class="text-center">{{ h.order_number or '-' }}</td>
+                                                        <td class="text-center">
                                                             {% if h.status_ticket == '1' %}
                                                             Aktif
                                                             {% elif h.status_ticket == '2' %}
@@ -479,6 +480,7 @@
                                                             {% endif %}
                                                         </td>
                                                         <td class="text-center">{{ h.tahapan or '-' }}</td>
+                                                        <td class="text-center">{{ h.user.username }}</td>
                                                     </tr>
                                                     {% endfor %}
                                                     {% else %}
