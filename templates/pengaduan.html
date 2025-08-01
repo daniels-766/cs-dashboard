@@ -731,32 +731,35 @@
                                             {% endfor %}
                                         </tbody>
                                     </table>
+                                    {% set args = request.args.to_dict() if request.args else {} %}
                                     <div class="d-flex justify-content-center mt-4">
                                         <nav>
                                             <ul class="pagination">
+
+                                                {% set prev_args = args.copy() %}
+                                                {% set _ = prev_args.update({'page': tickets.prev_num}) %}
+                                                {% set next_args = args.copy() %}
+                                                {% set _ = next_args.update({'page': tickets.next_num}) %}
+
                                                 {% if tickets.has_prev %}
                                                 <li class="page-item">
-                                                    <a class="page-link"
-                                                        href="{{ url_for('pengaduan', page=tickets.prev_num) }}">Previous</a>
+                                                    <a class="page-link" href="{{ url_for('pengaduan') }}?{{ prev_args | urlencode }}">Previous</a>
                                                 </li>
                                                 {% else %}
-                                                <li class="page-item disabled"><span class="page-link">Previous</span>
-                                                </li>
+                                                <li class="page-item disabled"><span class="page-link">Previous</span></li>
                                                 {% endif %}
 
                                                 {% for page_num in range(1, tickets.pages + 1) %}
-                                                <li
-                                                    class="page-item {% if tickets.page == page_num %}active{% endif %}">
-                                                    <a class="page-link"
-                                                        href="{{ url_for('pengaduan', page=page_num) }}">{{ page_num
-                                                        }}</a>
-                                                </li>
+                                                    {% set page_args = args.copy() %}
+                                                    {% set _ = page_args.update({'page': page_num}) %}
+                                                    <li class="page-item {% if tickets.page == page_num %}active{% endif %}">
+                                                        <a class="page-link" href="{{ url_for('pengaduan') }}?{{ page_args | urlencode }}">{{ page_num }}</a>
+                                                    </li>
                                                 {% endfor %}
 
                                                 {% if tickets.has_next %}
                                                 <li class="page-item">
-                                                    <a class="page-link"
-                                                        href="{{ url_for('pengaduan', page=tickets.next_num) }}">Next</a>
+                                                    <a class="page-link" href="{{ url_for('pengaduan') }}?{{ next_args | urlencode }}">Next</a>
                                                 </li>
                                                 {% else %}
                                                 <li class="page-item disabled"><span class="page-link">Next</span></li>

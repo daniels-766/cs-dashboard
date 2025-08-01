@@ -589,6 +589,80 @@ def filtering():
         range2=range2
     )
 
+@app.route('/filtering-kanal', methods=['GET'])
+@login_required
+def filtering_kanal():
+    range1 = request.args.get('range1', '')
+    range2 = request.args.get('range2', '')
+
+    def parse_range(date_range):
+        try:
+            start, end = date_range.split(' - ')
+            return datetime.strptime(start.strip(), '%Y-%m-%d'), datetime.strptime(end.strip(), '%Y-%m-%d')
+        except:
+            return None, None
+
+    start1, end1 = parse_range(range1)
+    start2, end2 = parse_range(range2)
+
+    kanal_list = db.session.query(Ticket.kanal_pengaduan)\
+        .filter(Ticket.kanal_pengaduan.isnot(None), Ticket.kanal_pengaduan != '')\
+        .distinct().all()
+    kanal_list = [k[0] for k in kanal_list]
+
+    def get_data_by_range(start, end):
+        q = Ticket.query.join(NomorTicket)\
+            .filter(Ticket.kanal_pengaduan.isnot(None), Ticket.kanal_pengaduan != '')
+        if start and end:
+            q = q.filter(Ticket.tanggal >= start, Ticket.tanggal <= end)
+        result = q.with_entities(
+            Ticket.kanal_pengaduan,
+            func.count(distinct(Ticket.nomor_ticket_id))
+        ).group_by(Ticket.kanal_pengaduan).all()
+        data_dict = {kanal: count for kanal, count in result}
+        return [data_dict.get(k, 0) for k in kanal_list]
+
+    chart_series = []
+
+    if not range1 and not range2:
+        total_data = get_data_by_range(None, None)
+        chart_series = [{
+            "name": "Total",
+            "data": total_data,
+            "bucket_info": [[] for _ in total_data]
+        }]
+    else:
+        data1 = get_data_by_range(start1, end1)
+        data2 = get_data_by_range(start2, end2)
+        if range1:
+            chart_series.append({
+                "name": f"Range {range1}",
+                "data": data1,
+                "bucket_info": [[] for _ in data1]
+            })
+        if range2:
+            chart_series.append({
+                "name": f"Range {range2}",
+                "data": data2,
+                "bucket_info": [[] for _ in data2]
+            })
+
+    kanal_colors = [
+        "#3081D0", "#FF6768", "#00C49F", "#FFBB28", "#AF7AC5",
+        "#2ECC71", "#F39C12", "#E74C3C", "#17A589", "#5D6D7E"
+    ]
+    default_colors = kanal_colors[:len(kanal_list)]
+
+    return render_template(
+        'filtering_kanal.html',
+        chart_labels=kanal_list,
+        chart_series=chart_series,
+        chart_colors=default_colors,
+        range1=range1,
+        range2=range2,
+        user=current_user
+    )
+
 @app.route('/staff_dashboard')
 @login_required
 def staff_dashboard():
