@@ -801,6 +801,9 @@ def pengaduan():
     status = request.args.get('status')
     tanggal = request.args.get('tanggal')
     q = request.args.get('q')
+    tahapan = request.args.get('tahapan')
+
+    tahapan_options = [row[0] for row in db.session.query(Ticket.tahapan).distinct().all() if row[0]]
 
     nomor_ticket_query = NomorTicket.query.filter(
         NomorTicket.id_qc == None,
@@ -838,6 +841,8 @@ def pengaduan():
                 query = query.filter(func.date(Ticket.tanggal) == tanggal_obj.date())
             except ValueError:
                 pass
+        if tahapan:
+            query = query.filter_by(tahapan=tahapan)
 
         first_ticket = query.order_by(Ticket.created_time.asc()).first()
         if first_ticket:
@@ -889,7 +894,8 @@ def pengaduan():
         user=current_user,
         tickets=pagination,
         count_by_nomor_ticket=count_by_nomor_ticket,
-        jumlah_tiket_aktif=jumlah_tiket_aktif
+        jumlah_tiket_aktif=jumlah_tiket_aktif,
+        tahapan_options=tahapan_options
     )
 
 @app.route('/export-ticket-excel')

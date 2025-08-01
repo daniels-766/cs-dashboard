@@ -597,6 +597,17 @@
                                                             </select>
                                                         </div>
                                                         <div class="mb-10">
+                                                            <label class="form-label fs-5 fw-bold mb-3">Tahapan:</label>
+                                                            <select class="form-select form-select-solid fw-bolder"
+                                                                data-kt-select2="true" data-placeholder="Select option"
+                                                                name="tahapan">
+                                                                <option></option>
+                                                                {% for t in tahapan_options %}
+                                                                    <option value="{{ t }}" {% if request.args.get('tahapan') == t %}selected{% endif %}>{{ t }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                        <div class="mb-10">
                                                             <label class="form-label fs-5 fw-bold mb-3">Tanggal:</label>
                                                             <input type="date" name="tanggal"
                                                                 class="form-control form-control-solid"
