@@ -68,7 +68,7 @@ app.config.from_object(Config())
 scheduler = APScheduler()
 scheduler.init_app(app)
 
-@scheduler.task('cron', id='decrease_sla_daily', hour=0, minute=0, timezone=timezone('Asia/Jakarta') )
+@scheduler.task('cron', id='decrease_sla_daily', hour=0, minute=0, timezone='Asia/Jakarta')
 def decrease_sla():
     with app.app_context():
         tickets = Ticket.query.filter(Ticket.sla > 0).all()
@@ -77,6 +77,7 @@ def decrease_sla():
         db.session.commit()
         print(f"SLA updated at {datetime.now(timezone('Asia/Jakarta'))} — {len(tickets)} ticket(s) updated.")
 
+# Job 2: Jalan setiap 1 menit
 def update_ticket_fields():
     with app.app_context():
         tickets = Ticket.query.filter(
@@ -86,16 +87,24 @@ def update_ticket_fields():
 
         for ticket in tickets:
             if ticket.nama_os in [None, "-", "None"]:
-                ticket.nama_os = ""  
+                ticket.nama_os = ""
             if ticket.nama_bucket in [None, "-", "None"]:
                 ticket.nama_bucket = ""
 
         db.session.commit()
         print(f"Updated {len(tickets)} ticket(s).")
 
-scheduler.add_job(id='Update None Fields', func=update_ticket_fields, trigger='interval', minutes=1)
+# Tambahkan job 2 ke scheduler
+scheduler.add_job(
+    id='update_none_fields',
+    func=update_ticket_fields,
+    trigger='interval',
+    minutes=1
+)
 
-scheduler.start()
+# Hanya jalankan scheduler jika belum jalan
+if not scheduler.running:
+    scheduler.start()
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -2414,7 +2423,8 @@ def eskalasi_qc():
 
 if __name__ == '__main__':
     if not is_running_from_reloader():
-        scheduler.start() 
+        if not scheduler.running:
+            scheduler.start()
     with app.app_context():
         db.create_all()
     app.run(debug=True, port=5007, host='0.0.0.0')
