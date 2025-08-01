@@ -1027,63 +1027,65 @@
     </script>
 
     <script>
-              document.addEventListener("DOMContentLoaded", function () {
-                  var options = {
-                      chart: {
-                          type: 'bar',
-                          height: 300
-                      },
-                      series: {{ chart_series | tojson
-              }},
-                  xaxis: {
-                  categories: {{ chart_labels | tojson }}
-              },
-              legend: {
-      				position: 'top',
-      				horizontalAlign: 'center'
-      			},
-                  plotOptions: {
-                  bar: {
-                      columnWidth: '40%',
-                      distributed: true
-                  }
-              },
-                  colors: {{ chart_colors | tojson }},
-                  dataLabels: {
-                  enabled: true,
-                  formatter: function (val) {
-                      return parseInt(val);
-                  },
-                  style: {
-                      fontSize: '12px',
-                      colors: ['#000']
-                  }
-              },
-                  tooltip: {
-          custom: function({ series, seriesIndex, dataPointIndex, w }) {
-              const value = series[seriesIndex][dataPointIndex];
-              const os = w.globals.labels[dataPointIndex];
-              const buckets = w.config.series[seriesIndex].bucket_info[dataPointIndex] || [];
+document.addEventListener("DOMContentLoaded", function () {
+    var options = {
+        chart: {
+            type: 'bar',
+            height: 300
+        },
+        series: {{ chart_series | tojson }},
+        xaxis: {
+            categories: {{ chart_labels | tojson }}
+        },
+        legend: {
+            position: 'top',
+            horizontalAlign: 'center'
+        },
+        plotOptions: {
+            bar: {
+                columnWidth: '40%',
+                distributed: false, // FALSE agar tidak pecah warnanya per series
+            }
+        },
+        colors: {{ chart_colors | tojson }},
+        dataLabels: {
+            enabled: true,
+            formatter: function (val) {
+                return parseInt(val);
+            },
+            style: {
+                fontSize: '12px',
+                colors: ['#000']
+            }
+        },
+        tooltip: {
+            custom: function({ series, seriesIndex, dataPointIndex, w }) {
+                const value = series[seriesIndex][dataPointIndex];
+                const os = w.globals.labels[dataPointIndex];
+                const buckets = w.config.series[seriesIndex].bucket_info
+                    ? w.config.series[seriesIndex].bucket_info[dataPointIndex] || []
+                    : [];
 
-              let bucketText = "";
-              if (buckets.length > 0) {
-                  bucketText = "<br><strong>Bucket:</strong><br>" + buckets.map(b => "- " + b).join("<br>");
-              }
+                let bucketText = "";
+                if (buckets.length > 0) {
+                    bucketText = "<br><strong>Bucket:</strong><br>" + buckets.map(b => "- " + b).join("<br>");
+                }
 
-              return `
-                  <div class="apex-tooltip-custom">
-                      <strong>${os}</strong><br>
-                      ${w.config.series[seriesIndex].name}: ${value} Ticket
-                      ${bucketText}
-                  </div>
-              `;
-          }
-      }
-          };
+                return `
+                    <div class="apex-tooltip-custom">
+                        <strong>${os}</strong><br>
+                        ${w.config.series[seriesIndex].name}: ${value} Ticket
+                        ${bucketText}
+                    </div>
+                `;
+            }
+        }
+    };
 
-              var chart = new ApexCharts(document.querySelector("#kt_security_summary_chart_kanal"), options);
-              chart.render();
-      });
-    </script>
+    var chart = new ApexCharts(document.querySelector("#kt_security_summary_chart_kanal"), options);
+    chart.render();
+});
+</script>
+
   </body>
 </html>

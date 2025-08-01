@@ -16,7 +16,7 @@ import pytz
 from werkzeug.serving import is_running_from_reloader
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/dashboard-cs2'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/dashboard-cs3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'b35dfe6ce150230940bd145823034486'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
@@ -588,7 +588,8 @@ def filtering():
         range1=range1,
         range2=range2
     )
-
+from datetime import datetime, timedelta
+from collections import defaultdict
 @app.route('/filtering-kanal', methods=['GET'])
 @login_required
 def filtering_kanal():
@@ -598,27 +599,42 @@ def filtering_kanal():
     def parse_range(date_range):
         try:
             start, end = date_range.split(' - ')
-            return datetime.strptime(start.strip(), '%Y-%m-%d'), datetime.strptime(end.strip(), '%Y-%m-%d')
+            start_dt = datetime.strptime(start.strip(), '%Y-%m-%d')
+            end_dt = datetime.strptime(end.strip(), '%Y-%m-%d') + timedelta(days=1)
+            return start_dt, end_dt
         except:
             return None, None
 
     start1, end1 = parse_range(range1)
     start2, end2 = parse_range(range2)
 
-    kanal_list = db.session.query(Ticket.kanal_pengaduan)\
+    # Ambil semua kanal (normalized ke lowercase dan strip spasi)
+    kanal_raw = db.session.query(Ticket.kanal_pengaduan)\
         .filter(Ticket.kanal_pengaduan.isnot(None), Ticket.kanal_pengaduan != '')\
         .distinct().all()
-    kanal_list = [k[0] for k in kanal_list]
+
+    kanal_set = set()
+    for k in kanal_raw:
+        kanal_normalized = (k[0] or '').strip().lower()
+        if kanal_normalized:
+            kanal_set.add(kanal_normalized)
+
+    # Untuk tampilan chart: kapitalisasi tiap kata
+    kanal_list = sorted(kanal_set)
+    chart_labels = [k.title() for k in kanal_list]
 
     def get_data_by_range(start, end):
         q = Ticket.query.join(NomorTicket)\
             .filter(Ticket.kanal_pengaduan.isnot(None), Ticket.kanal_pengaduan != '')
         if start and end:
-            q = q.filter(Ticket.tanggal >= start, Ticket.tanggal <= end)
+            q = q.filter(Ticket.tanggal >= start, Ticket.tanggal < end)
+
         result = q.with_entities(
-            Ticket.kanal_pengaduan,
+            func.lower(func.trim(Ticket.kanal_pengaduan)).label('kanal'),
             func.count(distinct(Ticket.nomor_ticket_id))
-        ).group_by(Ticket.kanal_pengaduan).all()
+        ).group_by('kanal').all()
+
+        # Buat dict hasil
         data_dict = {kanal: count for kanal, count in result}
         return [data_dict.get(k, 0) for k in kanal_list]
 
@@ -655,7 +671,7 @@ def filtering_kanal():
 
     return render_template(
         'filtering_kanal.html',
-        chart_labels=kanal_list,
+        chart_labels=chart_labels,   # pakai label kapitalisasi
         chart_series=chart_series,
         chart_colors=default_colors,
         range1=range1,
